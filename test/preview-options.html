@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Oscar — Preview (Options)</title>
+  <base href="../">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="options.css">
+  <script>
+    // Stub window.chrome so theme.js / analytics.js / options.js render with
+    // realistic demo data. This file is dev-only — it never ships.
+    const syncStore = {
+      theme: 'system',
+      rules: [
+        { id: 'p1', name: 'Slack deep link', domainPattern: '*.slack.com/archives/*', textPattern: 'redirected you to the desktop app', textMode: 'substring', delayMs: 2000, enabled: true },
+        { id: 'p2', name: 'Zoom launch meeting', domainPattern: '*.zoom.us/j/*', textPattern: 'Click Open Zoom Meetings', textMode: 'substring', delayMs: 2500, enabled: true },
+        { id: 'p3', name: 'Teams meeting', domainPattern: 'teams.microsoft.com/l/meetup-join/*', textPattern: 'Open Microsoft Teams', textMode: 'substring', delayMs: 2500, enabled: false },
+      ],
+    };
+
+    const now = Date.now();
+    const DAY = 86400000;
+    const byDate = {};
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(now - i * DAY);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      byDate[`${y}-${m}-${day}`] = Math.floor(20 + Math.random() * 40);
+    }
+
+    const localStore = {
+      analytics: {
+        version: 1,
+        totalCloses: 1247,
+        totalCancels: 38,
+        firstCloseAt: now - 30 * DAY,
+        lastCloseAt: now - 3600000,
+        rules: {
+          p1: { name: 'Slack deep link', closeCount: 820, cancelCount: 12, lastClosedAt: now - 3600000 },
+          p2: { name: 'Zoom launch meeting', closeCount: 318, cancelCount: 17, lastClosedAt: now - 7200000 },
+          p3: { name: 'Teams meeting', closeCount: 109, cancelCount: 9, lastClosedAt: now - 86400000 },
+        },
+        domains: {
+          'app.slack.com': { closeCount: 820, lastClosedAt: now - 3600000 },
+          'us02web.zoom.us': { closeCount: 318, lastClosedAt: now - 7200000 },
+          'teams.microsoft.com': { closeCount: 109, lastClosedAt: now - 86400000 },
+        },
+        hourly: [2, 1, 0, 0, 0, 0, 1, 3, 22, 58, 112, 148, 192, 215, 186, 110, 62, 43, 28, 19, 12, 8, 6, 3],
+        daily: [42, 198, 260, 248, 251, 210, 38],
+        byDate,
+        recentCloses: [],
+      },
+    };
+
+    const makeArea = (store) => ({
+      get(key) {
+        return new Promise((resolve) => {
+          if (key == null) return resolve({ ...store });
+          if (typeof key === 'string') return resolve({ [key]: store[key] });
+          if (Array.isArray(key)) {
+            const out = {};
+            key.forEach((k) => (out[k] = store[k]));
+            return resolve(out);
+          }
+          const out = {};
+          Object.entries(key).forEach(([k, def]) => (out[k] = store[k] !== undefined ? store[k] : def));
+          resolve(out);
+        });
+      },
+      set(obj) {
+        return new Promise((resolve) => {
+          Object.assign(store, obj);
+          resolve();
+        });
+      },
+    });
+
+    window.chrome = {
+      storage: {
+        sync: makeArea(syncStore),
+        local: makeArea(localStore),
+        onChanged: { addListener: () => {} },
+      },
+      runtime: {
+        // Swallow the favicon API — return a dummy URL that will 404, options.js falls back gracefully
+        getURL: (p) => 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22/>',
+      },
+    };
+  </script>
+  <script src="theme.js"></script>
+  <script src="analytics.js"></script>
+</head>
+<body>
+  <header class="masthead">
+    <img src="icons/icon-128.png" alt="" class="mascot" aria-hidden="true">
+    <div class="masthead-text">
+      <h1>Oscar</h1>
+      <p class="tagline"><em>Auto-closes the landing-page tabs that desktop apps leave behind.</em></p>
+    </div>
+  </header>
+  <main>
+    <section id="stats-section">
+      <div class="section-header">
+        <h2>Stats</h2>
+        <button id="reset-stats" class="ghost">Reset</button>
+      </div>
+      <div id="stats-empty" class="empty" hidden>Oscar hasn't closed any tabs yet. Stats will appear here after the first close.</div>
+      <div id="stats-content" hidden>
+        <div class="stat-grid" id="stat-grid"></div>
+        <div class="chart-row">
+          <div class="chart-block">
+            <div class="chart-title">By hour of day</div>
+            <div class="hourly-chart" id="hourly-chart"></div>
+            <div class="hourly-axis">
+              <span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span>
+            </div>
+          </div>
+          <div class="chart-block">
+            <div class="chart-title">By day of week</div>
+            <div class="daily-chart" id="daily-chart"></div>
+          </div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-block">
+            <div class="chart-title">Top domains</div>
+            <ul class="leaderboard" id="top-domains"></ul>
+          </div>
+          <div class="chart-block">
+            <div class="chart-title">Top rules</div>
+            <ul class="leaderboard" id="top-rules"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="theme-section">
+      <div class="section-header"><h2>Appearance</h2></div>
+      <div class="theme-picker" role="radiogroup" aria-label="Theme">
+        <label><input type="radio" name="theme" value="system"><span>System</span></label>
+        <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+        <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+        <label><input type="radio" name="theme" value="garbage"><span>Garbage</span></label>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Rules</h2>
+        <button id="add-rule" class="primary">Add rule</button>
+      </div>
+      <table id="rules-table">
+        <thead>
+          <tr>
+            <th>On</th><th>Name</th><th>Domain pattern</th><th>Text pattern</th><th>Mode</th><th>Delay (s)</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="rules-body"></tbody>
+      </table>
+      <p id="empty" class="empty" hidden>No rules yet.</p>
+    </section>
+
+    <section>
+      <div class="section-header"><h2>Rule library</h2></div>
+      <p class="library-intro">One-click presets for common desktop-app deep links. Tweak the text pattern after adding if the page doesn't match.</p>
+      <div id="library-grid" class="library-grid"></div>
+    </section>
+
+    <section class="help">
+      <h2>How matching works</h2>
+      <dl>
+        <dt>Domain pattern</dt>
+        <dd>Matches against <code>hostname</code> or <code>hostname + pathname</code>. Use <code>*</code> as a wildcard. Examples: <code>*.slack.com/archives/*</code>, <code>zoom.us/j/*</code>, <code>meet.google.com/*</code>.</dd>
+        <dt>Text pattern</dt>
+        <dd>Text that must appear on the page before Oscar closes the tab. Leave blank to match any page on the domain (use with care). Substring mode is case-insensitive.</dd>
+        <dt>Delay</dt>
+        <dd>How long to wait after a match before closing the tab. Gives the page's deep-link handler time to fire the <code>slack://</code>, <code>zoommtg://</code>, etc. protocol.</dd>
+      </dl>
+    </section>
+
+    <footer class="colophon"><span>Oscar is local-only. No accounts, no telemetry, no servers.</span></footer>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

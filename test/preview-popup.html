@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Oscar — Preview (Popup)</title>
+  <base href="../">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="popup.css">
+  <script>
+    const syncStore = { theme: 'light' };
+    const localStore = {
+      analytics: {
+        version: 1,
+        totalCloses: 1247,
+        totalCancels: 38,
+        firstCloseAt: Date.now() - 30 * 86400000,
+        lastCloseAt: Date.now() - 3600000,
+        rules: {},
+        domains: {},
+        hourly: Array(24).fill(0),
+        daily: Array(7).fill(0),
+        byDate: { [new Date().toISOString().slice(0, 10)]: 25 },
+        recentCloses: [],
+      },
+    };
+    const makeArea = (store) => ({
+      get(key) {
+        return new Promise((resolve) => {
+          if (key == null) return resolve({ ...store });
+          if (typeof key === 'string') return resolve({ [key]: store[key] });
+          const out = {};
+          if (Array.isArray(key)) { key.forEach((k) => (out[k] = store[k])); return resolve(out); }
+          Object.entries(key).forEach(([k, def]) => (out[k] = store[k] !== undefined ? store[k] : def));
+          resolve(out);
+        });
+      },
+      set(obj) { return new Promise((resolve) => { Object.assign(store, obj); resolve(); }); },
+    });
+    window.chrome = {
+      storage: {
+        sync: makeArea(syncStore),
+        local: makeArea(localStore),
+        onChanged: { addListener: () => {} },
+      },
+      tabs: {
+        query: async () => [{
+          id: 1,
+          title: 'Zoom — Launch Meeting',
+          url: 'https://us02web.zoom.us/j/1234567890?pwd=demo',
+        }],
+      },
+      runtime: {
+        openOptionsPage: () => {},
+        getURL: (p) => p,
+      },
+    };
+  </script>
+  <script src="theme.js"></script>
+  <script src="analytics.js"></script>
+</head>
+<body>
+  <header class="popup-masthead">
+    <img src="icons/icon-128.png" alt="" class="popup-mascot" aria-hidden="true">
+    <div>
+      <h1>Oscar</h1>
+      <div class="popup-sub"><em>Tab auto-closer</em></div>
+    </div>
+  </header>
+  <div id="stats-teaser" class="stats-teaser" hidden>
+    <div class="teaser-cell"><div class="teaser-value" id="teaser-total">0</div><div class="teaser-label">closed</div></div>
+    <div class="teaser-cell"><div class="teaser-value" id="teaser-today">0</div><div class="teaser-label">today</div></div>
+    <div class="teaser-cell"><div class="teaser-value" id="teaser-saved">0s</div><div class="teaser-label">saved</div></div>
+  </div>
+  <div class="label">Current tab</div>
+  <div id="tab-url" class="mono">Loading…</div>
+  <button id="add-from-current" class="primary">Create rule from this tab</button>
+  <button id="open-options" class="secondary">Manage rules…</button>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
