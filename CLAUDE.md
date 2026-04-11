@@ -9,11 +9,12 @@ Oscar is a Chrome Manifest V3 extension that auto-closes the landing-page tabs d
 ## Commands
 
 ```bash
-bash scripts/build.sh   # or: npm run build — zips the extension to dist/oscar-<version>.zip
-npm test                # currently a stub (`echo "no tests yet"`) despite what CONTRIBUTING.md claims
+npm run build              # or: bash scripts/build.sh — zips the extension to dist/oscar-<version>.zip
+npm test                   # node:test runner — matching.js, analytics.js, action-presenter.js
+bash scripts/check-version-bump.sh  # CI guard: fails if manifest.json version hasn't moved vs HEAD^
 ```
 
-There is no lint step and no `test/` directory. CONTRIBUTING.md describes a testing workflow that does not yet exist — treat its `npm test` instructions as aspirational.
+Requires **Node 21+** for `npm test` (glob expansion in `node --test`). CI runs on Node 22. No lint step. No bundler.
 
 ### Development loop
 
@@ -27,11 +28,13 @@ There is no lint step and no `test/` directory. CONTRIBUTING.md describes a test
 
 ## Architecture
 
-Four JS surfaces communicate via `chrome.storage` and `chrome.runtime.sendMessage`:
+Six JS modules split across the service worker, the injected content script, and the options/popup pages. They communicate via `chrome.storage` and `chrome.runtime.sendMessage`:
 
-- **`background.js`** — service worker. `importScripts('analytics.js')` to share analytics with the options page. Owns per-tab icon/badge state, records analytics, and executes `chrome.tabs.remove`. It does **not** drive the countdown — the content script does.
-- **`content.js`** — IIFE content script, `run_at: document_idle`. Loads rules from `chrome.storage.sync`, matches against `location.href` + `document.body.innerText`, and on match creates a Shadow-DOM overlay toast with the countdown and Cancel button. Re-checks via a `MutationObserver` for up to `OBSERVER_TIMEOUT_MS` (15s) to catch late-rendered page text. `queuedRuleId` guards against double-matching.
-- **`options.js` / `options.html`** — rules table, rule library, theme picker, stats dashboard. Reads `OscarAnalytics` and `OscarTheme` off `window`.
+- **`background.js`** — service worker. `importScripts('analytics.js', 'action-presenter.js')` to share helpers with the options page. Owns per-tab icon/badge state (delegated to `action-presenter.js`), records analytics, and executes `chrome.tabs.remove`. It does **not** drive the countdown — the content script does.
+- **`content.js`** — IIFE content script, `run_at: document_idle`. Loads rules from `chrome.storage.sync`, matches via `OscarMatching` helpers against `location.href` + `document.body.innerText`, and on match creates a Shadow-DOM overlay toast with the countdown and Cancel button. Re-checks via a `MutationObserver` for up to `OBSERVER_TIMEOUT_MS` (15s) to catch late-rendered page text. A synchronous `checking` lock + `queuedRuleId` guard against double-matching.
+- **`matching.js`** — pure helpers (`globToRegex`, `hostMatches`, `textMatches`) extracted so `content.js` and `test/matching.test.js` can share them. Attached to `self.OscarMatching`.
+- **`action-presenter.js`** — pure helpers (`markTabClosing`, `resetTab`) that take a `chrome.action`-shaped API as their first argument. Lets `test/action-presenter.test.js` validate the exact MV3 parameter shapes (e.g. `setTitle({tabId, title})` — **not** `{tabId, text}`) without a real extension context.
+- **`options.js` / `options.html`** — master/detail rules list with drag-to-reorder + expand-to-edit rows, rule library, theme picker, stats dashboard. Reads `OscarAnalytics` and `OscarTheme` off `window`. Rules have no `name` field — the domain pattern is the label.
 - **`popup.js` / `popup.html`** — toolbar popup: "add rule from current tab" button + mini stats teaser.
 
 ### Shared modules (IIFE + global pattern)
@@ -45,9 +48,11 @@ Four JS surfaces communicate via `chrome.storage` and `chrome.runtime.sendMessag
 - `CANCEL_MATCH {ruleId, ruleName}` → background resets icon/badge and calls `Analytics.recordCancel`.
 - `CLOSE_TAB {ruleId, ruleName}` → background calls `Analytics.recordClose` then `chrome.tabs.remove`. Uses `return true` / `sendResponse` for async reply.
 
+`ruleName` in these messages is the rule's **display label**, not a user-set name. Rules don't have names anymore — content.js populates `ruleName` from `rule.domainPattern` so analytics stores a meaningful per-rule key.
+
 ### Matching rules
 
-Matches require **both** a domain glob and (optionally) a page-text check. Domain patterns are glob-with-`*` converted to regex by `globToRegex`, tested against both `hostname` and `hostname + pathname` so patterns like `*.slack.com/archives/*` and bare `*.slack.com` both work. Text mode is `substring` (case-insensitive) or `regex`. The domain+text combo is the safety interlock — it prevents wiping real app tabs.
+Matches require **both** a domain glob and (optionally) a page-text check. Domain patterns are glob-with-`*` converted to regex by `globToRegex`, tested against both `hostname` and `hostname + pathname` so patterns like `*.slack.com/archives/*` and bare `*.slack.com` both work. A leading `www.` is stripped from both the rule's host and the URL's host before comparing, so `www.google.com/*` also matches `google.com` and vice versa (but arbitrary subdomains are untouched — `google.com/*` still won't match `mail.google.com`). Text mode is `substring` (case-insensitive) or `regex`. The domain+text combo is the safety interlock — it prevents wiping real app tabs.
 
 ### Storage layout
 
@@ -61,6 +66,15 @@ Matches require **both** a domain glob and (optionally) a page-text check. Domai
 ## House rules
 
 - **No telemetry.** Do not add code that phones home or identifies the user. This is a hard project rule.
-- **Version + changelog on every change.** Bump `"version"` in `manifest.json` and add a `[Unreleased]` line to `CHANGELOG.md`. The build script embeds the manifest version into the zip filename.
+- **Version + changelog on every change.** Bump `"version"` in `manifest.json` (and `package.json` to match) and add a `[Unreleased]` line to `CHANGELOG.md`. CI enforces the version bump via `scripts/check-version-bump.sh` — any push to `main` (or PR targeting it) that reuses the base-commit version fails the `test` job. The build script embeds the manifest version into the zip filename.
 - **Avoid `innerHTML` for user-facing content.** Use the `el()` helper in `options.js` or `document.createElement` directly.
 - **2-space indent, semicolons, `const`/`let` only.**
+
+## CI
+
+`.github/workflows/test.yml` has two jobs:
+
+- **`test`** — runs on PRs and pushes: `npm test` + `check-version-bump.sh`. Required status check for branch protection on `main`.
+- **`build`** — runs only on push to `main` after `test` passes. Runs `scripts/build.sh` and uploads `dist/oscar-<version>.zip` as a workflow artifact named `oscar-<version>` (90-day retention). Download from the Actions tab to upload to the Chrome Web Store.
+
+Branch protection on `main`: PR + 1 approval required, `test` status check required, force pushes + deletions blocked, admin bypass on (owner can push directly when needed).

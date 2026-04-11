@@ -32,20 +32,20 @@ Changes to `options.html`, `popup.html`, or any CSS are picked up on next page o
 
 ## Testing
 
-Unit tests live under `test/` and run against pure-JS helpers (extraction, matching, analytics math). When you add a helper function, add a test for it. When you change a helper, update its test.
+Unit tests live under `test/` and run against pure-JS helpers: `matching.js` (domain/text matching, including www-stripping), `analytics.js` (counters, insights, formatting), and `action-presenter.js` (MV3 icon/badge parameter shapes). When you add a helper function, add a test for it. When you change a helper, update its test.
 
 ```bash
-npm test
+npm test     # node:test runner, requires Node 21+
 ```
 
-UI changes are validated manually in Chrome. Please include a short note in the PR describing what you tested.
+UI changes are validated manually in Chrome. You can also preview the options page without reloading the whole extension by serving `test/preview-options.html` — it stubs `window.chrome` with in-memory demo data so real rules/analytics render without touching the extension install. Please include a short note in the PR describing what you tested.
 
 ## Version bumps
 
-Patch the version in `manifest.json` with your change so reviewers and users can see the reload took effect:
+Patch the version in **both** `manifest.json` and `package.json` with your change — CI (`scripts/check-version-bump.sh`) will fail the `test` job if `manifest.json` version hasn't moved vs. the base commit, so this isn't optional.
 
 ```json
-"version": "0.1.11" -> "0.1.12"
+"version": "0.1.16" -> "0.1.17"
 ```
 
 Add a one-liner to `CHANGELOG.md` under `[Unreleased]`.
@@ -62,9 +62,9 @@ If the change needs context, add a body explaining *why* (not what &mdash; the d
 
 ## Pull request checklist
 
-* [ ] Version bumped in `manifest.json`
+* [ ] Version bumped in both `manifest.json` and `package.json`
 * [ ] `CHANGELOG.md` updated under `[Unreleased]`
-* [ ] Tests added or updated for any logic changes
+* [ ] Tests added or updated for any logic changes (`npm test` passes locally)
 * [ ] Manually tested in Chrome
 * [ ] PR description explains the motivation and what was tested
 

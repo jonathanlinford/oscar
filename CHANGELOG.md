@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+* Docs: refreshed `CLAUDE.md` and `CONTRIBUTING.md` to reflect current reality — six JS modules (added `matching.js` and `action-presenter.js`), the master/detail rules UI with no rule names, www-stripping in match semantics, the new CI jobs, the `scripts/check-version-bump.sh` guard, required Node 21+ for `npm test`, and the enforcement of version bumps on both `manifest.json` and `package.json`. Added a "CI" section to `CLAUDE.md` covering the `test`/`build` jobs and branch protection
+
 ### Fixed
 * CI: bumped `actions/checkout@v4 → v6`, `actions/setup-node@v4 → v6`, `actions/upload-artifact@v4 → v7`. All three new majors target Node 24 natively, so the Node 20 deprecation annotations are gone (the prior `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` opt-in is no longer needed and has been removed)
 * README: added www-stripping note to the Domain pattern docs, refreshed the file-layout listing to include `matching.js`, `action-presenter.js`, `design/`, `scripts/check-version-bump.sh`, `test/`, `.github/workflows/`, and mentioned the CI-built zip artifact as a second packaging option alongside `npm run build`
