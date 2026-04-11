@@ -1,27 +1,56 @@
 * { box-sizing: border-box; }
 
 body {
-  width: 300px;
+  width: 320px;
   font-family: var(--font-family);
-  padding: 16px;
+  padding: 18px 18px 20px;
   margin: 0;
   color: var(--text);
   background: var(--bg);
+  line-height: 1.5;
+}
+
+.popup-masthead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.popup-mascot {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
 }
 
 h1 {
-  font-size: 16px;
-  margin: 0 0 12px;
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 700;
   letter-spacing: -0.01em;
+  line-height: 0.95;
+  margin: 0;
   color: var(--text-strong);
 }
+
+.popup-sub {
+  font-family: var(--font-serif);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+:root[data-theme="garbage"] .popup-sub em { font-style: normal; }
 
 .label {
   font-size: 10px;
   text-transform: uppercase;
   color: var(--text-muted);
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-family: var(--font-family);
 }
 
 #tab-url {
@@ -29,68 +58,70 @@ h1 {
   color: var(--text);
   word-break: break-all;
   background: var(--code-bg);
-  padding: 8px 10px;
+  padding: 9px 11px;
   border-radius: var(--radius-sm);
-  margin: 4px 0 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  line-height: 1.4;
-  max-height: 60px;
+  margin: 6px 0 14px;
+  font-family: var(--font-mono);
+  line-height: 1.45;
+  max-height: 64px;
   overflow-y: auto;
   border: 1px solid var(--border);
 }
 
-:root[data-theme="garbage"] #tab-url {
-  font-family: 'Courier New', monospace;
-}
-
-:root[data-theme="garbage"] h1,
-:root[data-theme="garbage"] .label {
-  font-family: Papyrus, 'Luminari', 'Copperplate', fantasy;
-  letter-spacing: 0.02em;
-}
-
 button {
   width: 100%;
-  padding: 9px 12px;
+  padding: 10px 14px;
   margin-top: 8px;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 13px;
   font-family: inherit;
+  letter-spacing: 0.01em;
 }
 
 button.primary {
   background: var(--primary);
   color: var(--primary-contrast);
+  border-color: var(--primary);
 }
 
-button.primary:hover { background: var(--primary-hover); }
+button.primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
 
 button.secondary {
-  background: var(--secondary-bg);
-  color: var(--text-strong);
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border-strong);
 }
 
-button.secondary:hover { background: var(--secondary-bg-hover); }
+button.secondary:hover {
+  background: var(--surface-raised);
+}
 
 #status {
   font-size: 12px;
   color: var(--success);
-  margin-top: 10px;
+  margin-top: 12px;
   min-height: 16px;
+  font-style: italic;
+  font-family: var(--font-serif);
 }
+
+:root[data-theme="garbage"] #status { font-style: normal; }
 
 .stats-teaser {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  background: var(--code-bg);
+  gap: 8px;
+  background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 10px 8px;
-  margin-bottom: 12px;
+  padding: 12px 10px;
+  margin-bottom: 14px;
 }
 
 .teaser-cell {
@@ -98,18 +129,32 @@ button.secondary:hover { background: var(--secondary-bg-hover); }
 }
 
 .teaser-value {
-  font-size: 18px;
+  font-family: var(--font-serif);
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-strong);
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
+  line-height: 1.0;
+  letter-spacing: -0.01em;
 }
 
 .teaser-label {
   font-size: 9px;
   text-transform: uppercase;
   color: var(--text-muted);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  margin-top: 2px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+
+:root[data-theme="garbage"] h1,
+:root[data-theme="garbage"] .label,
+:root[data-theme="garbage"] .popup-sub,
+:root[data-theme="garbage"] .teaser-value {
+  font-family: var(--font-serif);
+  letter-spacing: 0.02em;
+}
+
+:root[data-theme="garbage"] #tab-url {
+  font-family: var(--font-mono);
 }

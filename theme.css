@@ -1,57 +1,69 @@
 :root {
   color-scheme: light;
-  --bg: #f9fafb;
-  --surface: #ffffff;
-  --surface-raised: #ffffff;
-  --border: #e5e7eb;
-  --border-strong: #d1d5db;
-  --text: #1f2937;
-  --text-muted: #6b7280;
-  --text-strong: #111827;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-contrast: #ffffff;
-  --primary-shadow: rgba(37, 99, 235, 0.12);
-  --danger: #ef4444;
-  --danger-hover: #dc2626;
-  --success: #059669;
-  --input-bg: #ffffff;
-  --input-border: #d1d5db;
-  --secondary-bg: #e5e7eb;
-  --secondary-bg-hover: #d1d5db;
-  --code-bg: #f3f4f6;
-  --row-border: #f3f4f6;
-  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --radius: 10px;
-  --radius-sm: 6px;
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  /* Paper and ink */
+  --bg: #faf6ee;
+  --surface: #faf6ee;
+  --surface-raised: #f3ead4;
+  --border: #e2d9bf;
+  --border-strong: #1a1a1a;
+  --row-border: #e8dfc5;
+
+  /* Text */
+  --text: #1a1a1a;
+  --text-muted: #6b6257;
+  --text-strong: #0a0a0a;
+
+  /* Verdigris + rust accents */
+  --primary: #4a7c4f;
+  --primary-hover: #3d6842;
+  --primary-contrast: #faf6ee;
+  --primary-shadow: rgba(74, 124, 79, 0.18);
+  --danger: #c14a1a;
+  --danger-hover: #9a3a15;
+  --success: #4a7c4f;
+
+  /* Inputs and chips */
+  --input-bg: #fdfbf4;
+  --input-border: #c7bc9a;
+  --secondary-bg: #ede3c6;
+  --secondary-bg-hover: #e0d3ad;
+  --code-bg: #f1e8cf;
+
+  /* Shape and shadow */
+  --shadow-md: none;
+  --radius: 0;
+  --radius-sm: 2px;
+
+  /* Typography */
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --font-family: system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
   --font-feature: normal;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0b1220;
-  --surface: #111a2e;
-  --surface-raised: #182338;
-  --border: #1f2b44;
-  --border-strong: #2a3a5a;
-  --text: #e5e7eb;
-  --text-muted: #94a3b8;
-  --text-strong: #f8fafc;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --primary-contrast: #ffffff;
-  --primary-shadow: rgba(59, 130, 246, 0.25);
-  --danger: #f87171;
-  --danger-hover: #ef4444;
-  --success: #34d399;
-  --input-bg: #0b1220;
-  --input-border: #2a3a5a;
-  --secondary-bg: #1f2b44;
-  --secondary-bg-hover: #2a3a5a;
-  --code-bg: #1f2b44;
-  --row-border: #1a243b;
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --bg: #17150f;
+  --surface: #17150f;
+  --surface-raised: #221e14;
+  --border: #3a3326;
+  --border-strong: #f0e9d6;
+  --row-border: #2a2518;
+  --text: #f0e9d6;
+  --text-muted: #a39878;
+  --text-strong: #faf6ee;
+  --primary: #7aae7f;
+  --primary-hover: #8fc194;
+  --primary-contrast: #17150f;
+  --primary-shadow: rgba(122, 174, 127, 0.22);
+  --danger: #e0673d;
+  --danger-hover: #f07a50;
+  --success: #7aae7f;
+  --input-bg: #1d1b14;
+  --input-border: #4a4130;
+  --secondary-bg: #2a2518;
+  --secondary-bg-hover: #3a3326;
+  --code-bg: #221e14;
 }
 
 :root[data-theme="garbage"] {
@@ -80,5 +92,7 @@
   --shadow-md: 4px 4px 0 rgba(0, 0, 0, 0.3);
   --radius: 3px 11px 4px 9px;
   --radius-sm: 2px 5px 3px 4px;
+  --font-serif: Papyrus, 'Luminari', 'Copperplate', fantasy;
   --font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
+  --font-mono: 'Courier New', monospace;
 }

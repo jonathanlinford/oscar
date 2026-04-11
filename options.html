@@ -9,9 +9,12 @@
   <script src="analytics.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Oscar</h1>
-    <p class="tagline">Auto-close tabs after desktop-app deep links fire.</p>
+  <header class="masthead">
+    <img src="icons/icon-128.png" alt="" class="mascot" aria-hidden="true">
+    <div class="masthead-text">
+      <h1>Oscar</h1>
+      <p class="tagline"><em>Auto-closes the landing-page tabs that desktop apps leave behind.</em></p>
+    </div>
   </header>
   <main>
     <section id="stats-section">
@@ -101,6 +104,10 @@
         <dd>How long to wait after a match before closing the tab. This gives the page's deep-link handler time to fire the <code>slack://</code>, <code>zoommtg://</code>, etc. protocol.</dd>
       </dl>
     </section>
+
+    <footer class="colophon">
+      <span>Oscar is local-only. No accounts, no telemetry, no servers.</span>
+    </footer>
   </main>
   <script src="options.js"></script>
 </body>

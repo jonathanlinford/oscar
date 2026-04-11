@@ -3,36 +3,9 @@
   const OBSERVER_TIMEOUT_MS = 15000;
   const TICK_INTERVAL_MS = 250;
 
+  const { hostMatches, textMatches } = self.OscarMatching;
+
   let queuedRuleId = null;
-
-  function globToRegex(pattern) {
-    const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
-    return new RegExp('^' + escaped + '$', 'i');
-  }
-
-  function hostMatches(pattern, url) {
-    if (!pattern) return false;
-    try {
-      const u = new URL(url);
-      const hostPath = u.hostname + u.pathname;
-      const regex = globToRegex(pattern);
-      return regex.test(hostPath) || regex.test(u.hostname);
-    } catch {
-      return false;
-    }
-  }
-
-  function textMatches(pattern, mode, text) {
-    if (!pattern) return true;
-    if (mode === 'regex') {
-      try {
-        return new RegExp(pattern, 'i').test(text);
-      } catch {
-        return false;
-      }
-    }
-    return text.toLowerCase().includes(pattern.toLowerCase());
-  }
 
   async function getRules() {
     try {
@@ -43,41 +16,52 @@
     }
   }
 
+  const SANS = "system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif";
+  const SERIF = "'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif";
+
   const TOAST_THEMES = {
     dark: {
-      bg: '#111827',
-      text: '#ffffff',
-      muted: '#9ca3af',
-      count: '#ef4444',
-      btnBg: 'rgba(255,255,255,0.12)',
-      btnBgHover: 'rgba(255,255,255,0.2)',
-      btnText: '#ffffff',
-      shadow: '0 12px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08)',
-      font: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-      radius: '12px',
-      btnRadius: '6px',
+      bg: '#17150f',
+      text: '#f0e9d6',
+      muted: '#a39878',
+      count: '#e0673d',
+      accent: '#7aae7f',
+      btnBg: 'transparent',
+      btnBgHover: '#221e14',
+      btnText: '#f0e9d6',
+      btnBorder: '#f0e9d6',
+      shadow: '0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px #3a3326',
+      font: SANS,
+      titleFont: SERIF,
+      radius: '2px',
+      btnRadius: '2px',
     },
     light: {
-      bg: '#ffffff',
-      text: '#111827',
-      muted: '#6b7280',
-      count: '#ef4444',
-      btnBg: '#f3f4f6',
-      btnBgHover: '#e5e7eb',
-      btnText: '#111827',
-      shadow: '0 12px 32px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.06)',
-      font: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-      radius: '12px',
-      btnRadius: '6px',
+      bg: '#faf6ee',
+      text: '#1a1a1a',
+      muted: '#6b6257',
+      count: '#c14a1a',
+      accent: '#4a7c4f',
+      btnBg: 'transparent',
+      btnBgHover: '#f1e8cf',
+      btnText: '#1a1a1a',
+      btnBorder: '#1a1a1a',
+      shadow: '0 10px 28px rgba(45,35,15,0.18), 0 0 0 1px #1a1a1a',
+      font: SANS,
+      titleFont: SERIF,
+      radius: '2px',
+      btnRadius: '2px',
     },
     garbage: {
       bg: '#5d6b2a',
       text: '#fff8dc',
       muted: '#d4c97a',
       count: '#c1440e',
+      accent: '#9acd32',
       btnBg: '#4a5822',
       btnBgHover: '#6f7d32',
       btnText: '#fff8dc',
+      btnBorder: '#8b9b3f',
       shadow: '4px 4px 0 rgba(0,0,0,0.4), 0 0 0 2px #8b9b3f',
       font: "'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive",
       titleFont: "Papyrus, 'Luminari', 'Copperplate', fantasy",
@@ -112,13 +96,13 @@
         font-family: ${theme.font};
         background: ${theme.bg};
         color: ${theme.text};
-        padding: 18px 20px;
+        padding: 16px 20px 18px;
         border-radius: ${theme.radius};
         box-shadow: ${theme.shadow};
         display: flex;
         align-items: center;
-        gap: 20px;
-        min-width: 280px;
+        gap: 18px;
+        min-width: 300px;
         pointer-events: auto;
         animation: oscar-in 0.25s cubic-bezier(.2,.9,.3,1.2);
       }
@@ -132,42 +116,58 @@
       }
       .toast.leaving { animation: oscar-out 0.2s ease-in forwards; }
       .body { min-width: 0; flex: 1; }
+      .eyebrow {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: ${theme.accent};
+        font-family: ${theme.font};
+        margin-bottom: 4px;
+      }
       .title {
-        font-size: 13px;
-        font-weight: 600;
+        font-size: 17px;
+        font-weight: 700;
         letter-spacing: -0.01em;
         color: ${theme.text};
         font-family: ${theme.titleFont || theme.font};
+        line-height: 1.15;
       }
       .subtitle {
         font-size: 11px;
         color: ${theme.muted};
-        margin-top: 3px;
-        max-width: 160px;
+        margin-top: 4px;
+        max-width: 180px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        font-style: italic;
+        font-family: ${theme.titleFont || theme.font};
       }
       .count {
-        font-size: 30px;
+        font-family: ${theme.titleFont || theme.font};
+        font-size: 36px;
         font-weight: 700;
         color: ${theme.count};
         font-variant-numeric: tabular-nums;
         line-height: 1;
-        min-width: 30px;
+        min-width: 36px;
         text-align: center;
         flex-shrink: 0;
+        letter-spacing: -0.02em;
       }
       .cancel {
         background: ${theme.btnBg};
-        border: none;
+        border: 1px solid ${theme.btnBorder};
         color: ${theme.btnText};
-        padding: 8px 14px;
+        padding: 7px 13px;
         border-radius: ${theme.btnRadius};
         cursor: pointer;
         font-size: 11px;
-        font-family: inherit;
-        font-weight: 500;
+        font-family: ${theme.font};
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
         flex-shrink: 0;
       }
       .cancel:hover { background: ${theme.btnBgHover}; }
@@ -180,14 +180,19 @@
     const body = document.createElement('div');
     body.className = 'body';
 
+    const eyebrow = document.createElement('div');
+    eyebrow.className = 'eyebrow';
+    eyebrow.textContent = 'Oscar — closing tab';
+
     const title = document.createElement('div');
     title.className = 'title';
-    title.textContent = 'Oscar closing this tab';
+    title.textContent = ruleName || 'Matched rule';
 
     const subtitle = document.createElement('div');
     subtitle.className = 'subtitle';
-    subtitle.textContent = ruleName || '';
+    subtitle.textContent = 'desktop app handled it';
 
+    body.appendChild(eyebrow);
     body.appendChild(title);
     body.appendChild(subtitle);
 

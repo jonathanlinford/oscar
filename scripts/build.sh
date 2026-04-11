@@ -31,6 +31,7 @@ EXTENSION_FILES=(
   analytics.js
   background.js
   content.js
+  matching.js
   options.html
   options.js
   options.css

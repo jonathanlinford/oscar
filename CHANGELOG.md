@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+* Unit test suite under `test/` built on Node's `node:test` runner — covers domain/text matching (`matching.js`) and the pure analytics helpers (`coerce`, `computeInsights`, `formatDuration`, `dateKey`, `hourLabel`) plus `recordClose`/`recordCancel`/`reset` via a stubbed `chrome.storage`
+* GitHub Actions workflow (`.github/workflows/test.yml`) runs `npm test` on push to `main` and all pull requests
+* GitHub issue templates (bug report + feature request) and pull request template under `.github/`
+* `matching.js` shared module extracted from `content.js` so the matching helpers can be unit-tested without a browser
+* `test/preview-options.html` and `test/preview-popup.html` dev wrappers that stub `chrome.storage` to render the real options/popup pages with demo data (not shipped in the zip)
+* Editorial masthead with the Oscar-the-Grouch mascot alongside a large serif wordmark on both the options page and the popup
+* Colophon footer on the options page: *"Oscar is local-only. No accounts, no telemetry, no servers."*
+
+### Changed
+* Full visual redesign &mdash; retired the generic blue/card/shadow look for a "trash-can editorial" aesthetic: warm cream paper background, deep charcoal ink, verdigris-green accent, rust-orange danger, thin horizontal rules instead of boxed cards. System serif for display type (Iowan Old Style / Palatino / Georgia), system-ui for body, `ui-monospace` for rule patterns. Dark mode uses the same hues inverted on a warm near-black
+* In-page countdown toast now echoes the new palette: flat 1px outline instead of drop shadow, serif rule name, uppercase "Cancel" button, verdigris eyebrow label
+* Rule library cards and stat cards lean on a subtle cream-raised surface instead of grey cards
+* `content.js` imports matching helpers from `self.OscarMatching` (added to `manifest.json` `content_scripts.js` before `content.js`)
+* `package.json` `test` script now runs `node --test 'test/**/*.test.js'` instead of the old `echo` stub
+
 ## [0.1.11] &mdash; 2026-04-10
 
 ### Added
