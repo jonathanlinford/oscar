@@ -278,11 +278,41 @@ td select:focus {
   box-shadow: 0 0 0 3px var(--primary-shadow);
 }
 
+td input[type="text"].invalid {
+  border-color: var(--danger);
+  background: var(--danger-tint);
+}
+
+td input[type="text"].invalid:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-shadow);
+}
+
+td input[type="text"].warning {
+  border-color: var(--warn);
+  background: var(--warn-tint);
+}
+
+td input[type="text"].warning:focus {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 3px var(--warn-shadow);
+}
+
 td input[type="checkbox"] {
   width: 16px;
   height: 16px;
   cursor: pointer;
   accent-color: var(--primary);
+  transition: opacity 0.15s ease;
+}
+
+td input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+tbody tr.rule-invalid td:first-child {
+  position: relative;
 }
 
 /* Buttons --------------------------------------------------------------- */

@@ -206,6 +206,32 @@ function el(tag, props = {}, children = []) {
   return node;
 }
 
+function validateRow(tr, rule) {
+  const domainInput = tr.querySelector('input[data-field="domainPattern"]');
+  const textInput = tr.querySelector('input[data-field="textPattern"]');
+  const enabledInput = tr.querySelector('input[data-field="enabled"]');
+
+  const domainOk = (rule.domainPattern || '').trim().length > 0;
+  const textPresent = (rule.textPattern || '').trim().length > 0;
+
+  domainInput.classList.toggle('invalid', !domainOk);
+  domainInput.title = domainOk
+    ? ''
+    : 'A domain pattern is required. Example: *.slack.com/*';
+
+  const showTextWarning = domainOk && !textPresent;
+  textInput.classList.toggle('warning', showTextWarning);
+  textInput.title = showTextWarning
+    ? 'Warning: with no text pattern, this rule will match every page on the domain.'
+    : '';
+
+  enabledInput.disabled = !domainOk;
+  enabledInput.title = domainOk
+    ? ''
+    : "This rule can't be enabled until it has a domain pattern.";
+  tr.classList.toggle('rule-invalid', !domainOk);
+}
+
 function buildRow(rule, index) {
   const tr = el('tr');
   tr.dataset.index = String(index);
@@ -281,6 +307,7 @@ function buildRow(rule, index) {
   [enabledCell, nameCell, domainCell, textCell, modeCell, delayCell, deleteCell].forEach((c) =>
     tr.appendChild(c),
   );
+  validateRow(tr, rule);
   return tr;
 }
 
@@ -566,6 +593,10 @@ body.addEventListener('input', async (e) => {
   if (field === 'domainPattern') {
     const img = tr.querySelector('img.favicon');
     if (img) setFavicon(img, value);
+  }
+
+  if (field === 'domainPattern' || field === 'textPattern') {
+    validateRow(tr, currentRules[index]);
   }
 
   await saveRules(currentRules);

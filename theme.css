@@ -20,6 +20,11 @@
   --primary-shadow: rgba(74, 124, 79, 0.18);
   --danger: #c14a1a;
   --danger-hover: #9a3a15;
+  --danger-tint: rgba(193, 74, 26, 0.08);
+  --danger-shadow: rgba(193, 74, 26, 0.18);
+  --warn: #b68410;
+  --warn-tint: rgba(182, 132, 16, 0.1);
+  --warn-shadow: rgba(182, 132, 16, 0.22);
   --success: #4a7c4f;
 
   /* Inputs and chips */
@@ -58,6 +63,11 @@
   --primary-shadow: rgba(122, 174, 127, 0.22);
   --danger: #e0673d;
   --danger-hover: #f07a50;
+  --danger-tint: rgba(224, 103, 61, 0.14);
+  --danger-shadow: rgba(224, 103, 61, 0.28);
+  --warn: #d9a340;
+  --warn-tint: rgba(217, 163, 64, 0.14);
+  --warn-shadow: rgba(217, 163, 64, 0.28);
   --success: #7aae7f;
   --input-bg: #1d1b14;
   --input-border: #4a4130;
@@ -82,6 +92,11 @@
   --primary-shadow: rgba(154, 205, 50, 0.35);
   --danger: #c1440e;
   --danger-hover: #e25822;
+  --danger-tint: rgba(193, 68, 14, 0.18);
+  --danger-shadow: rgba(193, 68, 14, 0.3);
+  --warn: #e8b94a;
+  --warn-tint: rgba(232, 185, 74, 0.16);
+  --warn-shadow: rgba(232, 185, 74, 0.3);
   --success: #b5d94e;
   --input-bg: #2a3510;
   --input-border: #8b9b3f;
