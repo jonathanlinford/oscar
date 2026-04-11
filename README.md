@@ -37,7 +37,7 @@ It is completely local. No accounts, no telemetry, no servers.
 
 Open the options page from `chrome://extensions` &rarr; Oscar &rarr; **Extension options**, or right-click the toolbar icon &rarr; **Options**. Add a rule by clicking **+ Add** on any preset in the **Rule library**, or build one by hand:
 
-* **Domain pattern** &mdash; matches against `hostname` or `hostname + pathname`. Use `*` as a wildcard. Examples: `*.slack.com/archives/*`, `zoom.us/j/*`, `meet.google.com/*`.
+* **Domain pattern** &mdash; matches against `hostname` or `hostname + pathname`. Use `*` as a wildcard. Examples: `*.slack.com/archives/*`, `zoom.us/j/*`, `meet.google.com/*`. A leading `www.` is ignored on both sides, so `www.google.com/*` also matches `google.com`, and `argusleader.com/*` also matches `www.argusleader.com`.
 * **Text pattern** &mdash; case-insensitive substring (or regex) that must appear on the rendered page before Oscar fires. Leave blank to match any page on the domain.
 * **Delay (s)** &mdash; how long Oscar waits after matching before closing, giving the page's deep-link handler time to fire the `slack://`, `zoommtg://`, etc. protocol.
 
@@ -54,25 +54,39 @@ The extension is vanilla JavaScript with no build step. Edit the source, reload 
 ### File layout
 
 ```
-manifest.json       Chrome extension manifest (v3)
-background.js       Service worker: messaging, icon/badge state, analytics wiring
-content.js          Page content script: matching, in-page toast, Cancel button
-analytics.js        Shared analytics module (background + options page)
-theme.js            Shared theme resolution (System/Light/Dark/Garbage)
-theme.css           CSS custom properties per theme
-options.html/js/css Settings UI: rules, library, theme picker, stats
-popup.html/js/css   Toolbar popup: current-tab add button, mini stats teaser
-icons/              Generated PNGs in 16/32/48/128 + "closing" red variants
-scripts/build.sh    Package the extension as a zip for the Chrome Web Store
+manifest.json           Chrome extension manifest (v3)
+background.js           Service worker: messaging, icon/badge state, analytics wiring
+content.js              Page content script: in-page toast, Cancel button, match loop
+matching.js             Shared domain/text matching helpers (content + unit tests)
+action-presenter.js     Pure helpers that drive the toolbar icon / badge / title
+analytics.js            Shared analytics module (background + options page)
+theme.js                Shared theme resolution (System/Light/Dark/Garbage)
+theme.css               CSS custom properties per theme
+options.html/js/css     Settings UI: rules, library, theme picker, stats
+popup.html/js/css       Toolbar popup: current-tab add button, mini stats teaser
+icons/                  Shipped PNGs in 16/32/48/128 + "closing" red variants
+design/                 Pre-resize icon source masters (not shipped)
+scripts/build.sh        Package the extension as a zip for the Chrome Web Store
+scripts/check-version-bump.sh  CI guard that requires manifest.json version bumps
+test/                   node:test unit tests + dev preview HTML pages
+.github/workflows/      Test + build CI
 ```
 
 ### Packaging for the Chrome Web Store
 
 ```bash
-bash scripts/build.sh
+npm run build          # or: bash scripts/build.sh
 ```
 
 Produces `dist/oscar-<version>.zip`, ready to upload to the developer dashboard.
+
+CI also builds the zip on every push to `main` and uploads it as a workflow artifact named `oscar-<version>` (90-day retention), so you can grab a ready-to-upload zip directly from the Actions tab without running the script locally.
+
+### Tests
+
+```bash
+npm test               # runs test/**/*.test.js via node:test (Node 21+)
+```
 
 ## Contributing
 

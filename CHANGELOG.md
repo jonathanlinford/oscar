@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+* CI workflow set `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` at the workflow level to opt every JS-based action (checkout, setup-node, upload-artifact) into Node 24 ahead of GitHub's June 2026 forced cutover. Silences the "Node.js 20 actions are deprecated" annotations without guessing which action major versions support Node 24 natively
+* README: added www-stripping note to the Domain pattern docs, refreshed the file-layout listing to include `matching.js`, `action-presenter.js`, `design/`, `scripts/check-version-bump.sh`, `test/`, `.github/workflows/`, and mentioned the CI-built zip artifact as a second packaging option alongside `npm run build`
+
 ### Changed
 * Moved the pre-resize icon masters (`icon-source.png`, `icon-closing-source.png`, ~1.9 MB combined) from `icons/` to `design/`. They were never shipped — they're only used to regenerate the 16/32/48/128 raster variants — but they were picked up by Chrome's unpacked-load size because they lived inside the loaded folder. The shipped Web Store zip is unchanged (still 96 KB); the on-disk unpacked size drops by ~1.9 MB
 

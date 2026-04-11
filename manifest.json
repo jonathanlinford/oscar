@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Oscar — Tab Auto-Closer",
   "short_name": "Oscar",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Auto-closes tabs after desktop-app deep links fire (Slack, Zoom, Teams, etc). Matches on domain + page text.",
   "author": "Jonny Linford",
   "homepage_url": "https://github.com/jonathanlinford/oscar",
