@@ -11,6 +11,18 @@
   // overlays at once (one per MutationObserver tick).
   let checking = false;
 
+  function faviconUrl() {
+    const links = document.querySelectorAll(
+      "link[rel='icon'], link[rel='shortcut icon'], link[rel='apple-touch-icon']",
+    );
+    for (const link of links) {
+      if (link.href) return link.href;
+    }
+    return location.origin + '/favicon.ico';
+  }
+
+  const TRASH_SVG = `<svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11 V7 H30 V11"/><line x1="6" y1="12" x2="42" y2="12"/><path d="M10 13 L12 42 H36 L38 13 Z"/><line x1="19" y1="20" x2="20" y2="36"/><line x1="24" y1="20" x2="24" y2="36"/><line x1="29" y1="20" x2="28" y2="36"/></svg>`;
+
   async function getRules() {
     try {
       const { rules = [] } = await chrome.storage.sync.get('rules');
@@ -120,6 +132,49 @@
       }
       .toast.leaving { animation: oscar-out 0.2s ease-in forwards; }
       .body { min-width: 0; flex: 1; }
+      .scene {
+        position: relative;
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+        color: ${theme.accent};
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+      .scene-can {
+        display: flex;
+        transform-origin: 50% 100%;
+        animation: oscar-shake 1s ease-in-out infinite;
+      }
+      .scene svg { display: block; }
+      .scene-favicon {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        left: 50%;
+        top: 0;
+        margin-left: -8px;
+        border-radius: 3px;
+        z-index: 0;
+        animation: oscar-drop 1s ease-in infinite;
+        pointer-events: none;
+      }
+      @keyframes oscar-drop {
+        0%   { transform: translateY(-6px) scale(1)    rotate(-10deg); opacity: 0;   }
+        15%  { transform: translateY(-2px) scale(1)    rotate(-6deg);  opacity: 1;   }
+        65%  { transform: translateY(14px) scale(0.95) rotate(4deg);   opacity: 1;   }
+        78%  { transform: translateY(20px) scale(0.55) rotate(10deg);  opacity: 0.55;}
+        92%  { transform: translateY(22px) scale(0.25) rotate(14deg);  opacity: 0;   }
+        100% { transform: translateY(22px) scale(0.25) rotate(14deg);  opacity: 0;   }
+      }
+      @keyframes oscar-shake {
+        0%, 62%  { transform: rotate(0);    }
+        68%      { transform: rotate(-6deg); }
+        74%      { transform: rotate(5deg);  }
+        80%      { transform: rotate(-3deg); }
+        86%, 100%{ transform: rotate(0);    }
+      }
       .eyebrow {
         font-size: 9px;
         font-weight: 700;
@@ -200,6 +255,24 @@
     body.appendChild(title);
     body.appendChild(subtitle);
 
+    const scene = document.createElement('div');
+    scene.className = 'scene';
+    const favicon = document.createElement('img');
+    favicon.className = 'scene-favicon';
+    favicon.alt = '';
+    favicon.src = faviconUrl();
+    favicon.onerror = () => {
+      favicon.onerror = () => {
+        favicon.style.display = 'none';
+      };
+      favicon.src = location.origin + '/favicon.ico';
+    };
+    const can = document.createElement('div');
+    can.className = 'scene-can';
+    can.innerHTML = TRASH_SVG;
+    scene.appendChild(favicon);
+    scene.appendChild(can);
+
     const count = document.createElement('div');
     count.className = 'count';
     count.textContent = '…';
@@ -209,6 +282,7 @@
     cancelBtn.textContent = 'Cancel';
 
     toast.appendChild(body);
+    toast.appendChild(scene);
     toast.appendChild(count);
     toast.appendChild(cancelBtn);
     shadow.appendChild(toast);
