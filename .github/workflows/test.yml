@@ -35,10 +35,20 @@ jobs:
         run: echo "version=$(grep '\"version\"' manifest.json | head -1 | sed -E 's/.*\"version\"[[:space:]]*:[[:space:]]*\"([^\"]+)\".*/\1/')" >> "$GITHUB_OUTPUT"
       - name: Build extension zip
         run: bash scripts/build.sh
-      - name: Upload zip artifact
+      - name: Stage extension files for artifact upload
+        # GitHub wraps every uploaded artifact in its own zip at download time.
+        # If we point upload-artifact at the .zip file itself, the downloaded
+        # file is a zip-containing-a-zip, and the Chrome Web Store rejects it
+        # with "No manifest found in package". Uploading the *extracted*
+        # contents instead means GitHub's download wrapper IS the valid
+        # extension zip — one layer of zipping, not two.
+        run: |
+          mkdir -p dist/unpacked
+          unzip -q dist/oscar-*.zip -d dist/unpacked
+      - name: Upload extension artifact
         uses: actions/upload-artifact@v7
         with:
           name: oscar-${{ steps.version.outputs.version }}
-          path: dist/oscar-*.zip
+          path: dist/unpacked/
           if-no-files-found: error
           retention-days: 90

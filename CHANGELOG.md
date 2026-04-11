@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+* CI build job no longer produces a double-zipped artifact. GitHub wraps every uploaded artifact in its own zip at download time; the old workflow pointed `upload-artifact` at `dist/oscar-*.zip` directly, so downloaded artifacts were zip-containing-a-zip and the Chrome Web Store rejected them with *"No manifest found in package"*. The build step now extracts `dist/oscar-*.zip` into `dist/unpacked/` and uploads the extracted directory — GitHub's download wrapper then IS the valid extension zip (one layer of zipping, not two), ready to upload to CWS directly
+
 ### Changed
 * Docs: refreshed `CLAUDE.md` and `CONTRIBUTING.md` to reflect current reality — six JS modules (added `matching.js` and `action-presenter.js`), the master/detail rules UI with no rule names, www-stripping in match semantics, the new CI jobs, the `scripts/check-version-bump.sh` guard, required Node 21+ for `npm test`, and the enforcement of version bumps on both `manifest.json` and `package.json`. Added a "CI" section to `CLAUDE.md` covering the `test`/`build` jobs and branch protection
 
