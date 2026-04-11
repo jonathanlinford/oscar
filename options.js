@@ -291,10 +291,14 @@ function render() {
   renderLibrary();
 }
 
+function normalizePattern(p) {
+  return (p || '').trim().toLowerCase();
+}
+
 function isPresetInstalled(preset) {
-  return currentRules.some(
-    (r) => r.domainPattern === preset.domainPattern && r.textPattern === preset.textPattern,
-  );
+  const target = normalizePattern(preset.domainPattern);
+  if (!target) return false;
+  return currentRules.some((r) => normalizePattern(r.domainPattern) === target);
 }
 
 function buildLibraryCard(preset) {
