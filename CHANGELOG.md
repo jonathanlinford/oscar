@@ -8,8 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Removed
 * Default Slack and Zoom rules are no longer seeded on fresh install. Oscar now starts empty — users pick presets from the Rule library or write their own. The `chrome.runtime.onInstalled` handler is gone entirely
+* The "How matching works" section is no longer a whole page section — it lives in a modal triggered by a `?` icon next to the Rules heading
+
+### Fixed
+* Double-toast bug: when multiple `MutationObserver` ticks raced past the `queuedRuleId` guard during the `await getRules()` window, two overlays would spawn and clicking Cancel only dismissed the top one. `content.js` now uses a synchronous `checking` lock, and `startClosure` defensively clears any stray overlays before adding a new one
+* `Mode` column in the Rules table was too narrow — the `Substring ∨` select was clipped. Added explicit column widths for On / Mode / Delay / delete
 
 ### Added
+* Sections reordered so the primary workspace leads: Rules → Rule library → Stats → Appearance. Help is now a modal
+* Help modal (native `<dialog>`) with scale + fade open/close animations via `@starting-style` and `transition-behavior: allow-discrete`
+* Tasteful page-load animations: staggered fade+rise on sections, grow-from-zero on hourly/daily/leaderboard bar fills with per-index delays driven by a CSS `--i` custom property set at render time
+* Button hover micro-interactions (subtle lift + shadow on primary buttons and library cards)
+* Theme-switch color transitions on body background and foreground
+* All animations respect `prefers-reduced-motion: reduce`
+* The Rules table's delete button is now a small Oscar-the-Grouch icon instead of an `×` — hover wiggles it, clicking slides the row out before removal
 * Unit test suite under `test/` built on Node's `node:test` runner — covers domain/text matching (`matching.js`) and the pure analytics helpers (`coerce`, `computeInsights`, `formatDuration`, `dateKey`, `hourLabel`) plus `recordClose`/`recordCancel`/`reset` via a stubbed `chrome.storage`
 * GitHub Actions workflow (`.github/workflows/test.yml`) runs `npm test` on push to `main` and all pull requests
 * GitHub issue templates (bug report + feature request) and pull request template under `.github/`

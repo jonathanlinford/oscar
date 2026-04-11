@@ -6,6 +6,10 @@
   const { hostMatches, textMatches } = self.OscarMatching;
 
   let queuedRuleId = null;
+  // Synchronous lock to prevent overlapping check() calls from both racing past
+  // the queuedRuleId guard during the await on getRules() and spawning two
+  // overlays at once (one per MutationObserver tick).
+  let checking = false;
 
   async function getRules() {
     try {
@@ -229,6 +233,9 @@
   }
 
   async function startClosure(rule, delay) {
+    // Belt-and-suspenders — clear any stray overlays from an earlier match
+    // before adding a new one.
+    document.querySelectorAll('[data-oscar-overlay]').forEach((el) => el.remove());
     const endTime = Date.now() + delay;
     const theme = await resolveToastTheme();
     const overlay = createOverlay(rule.name, theme);
@@ -270,21 +277,26 @@
   }
 
   async function check() {
-    if (queuedRuleId) return;
-    const rules = await getRules();
-    if (!rules.length) return;
+    if (queuedRuleId || checking) return;
+    checking = true;
+    try {
+      const rules = await getRules();
+      if (!rules.length) return;
 
-    const url = location.href;
-    const text = (document.body && document.body.innerText) || '';
+      const url = location.href;
+      const text = (document.body && document.body.innerText) || '';
 
-    for (const rule of rules) {
-      if (!hostMatches(rule.domainPattern, url)) continue;
-      if (!textMatches(rule.textPattern, rule.textMode || 'substring', text)) continue;
+      for (const rule of rules) {
+        if (!hostMatches(rule.domainPattern, url)) continue;
+        if (!textMatches(rule.textPattern, rule.textMode || 'substring', text)) continue;
 
-      queuedRuleId = rule.id;
-      const delay = typeof rule.delayMs === 'number' ? rule.delayMs : DEFAULT_DELAY_MS;
-      startClosure(rule, delay);
-      return;
+        queuedRuleId = rule.id;
+        const delay = typeof rule.delayMs === 'number' ? rule.delayMs : DEFAULT_DELAY_MS;
+        startClosure(rule, delay);
+        return;
+      }
+    } finally {
+      checking = false;
     }
   }
 

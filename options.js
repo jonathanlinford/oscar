@@ -271,11 +271,12 @@ function buildRow(rule, index) {
 
   const deleteBtn = el('button', {
     className: 'delete',
-    textContent: '×',
     title: 'Delete rule',
+    'aria-label': 'Delete rule',
     dataset: { index: String(index) },
   });
-  const deleteCell = el('td', {}, [deleteBtn]);
+  deleteBtn.appendChild(el('img', { src: 'icons/icon-32.png', alt: '' }));
+  const deleteCell = el('td', { className: 'col-del' }, [deleteBtn]);
 
   [enabledCell, nameCell, domainCell, textCell, modeCell, delayCell, deleteCell].forEach((c) =>
     tr.appendChild(c),
@@ -362,6 +363,7 @@ function renderHourlyChart(bars) {
     const bar = el('div', { className: 'hourly-bar' });
     const pct = Math.max(2, Math.round((count / max) * 100));
     bar.style.height = `${pct}%`;
+    bar.style.setProperty('--i', String(hour));
     bar.title = `${window.OscarAnalytics.hourLabel(hour)} — ${count} close${count === 1 ? '' : 's'}`;
     if (count === 0) bar.classList.add('empty');
     hourlyChart.appendChild(bar);
@@ -382,6 +384,7 @@ function renderDailyChart(bars) {
     const track = el('div', { className: 'daily-bar-track' });
     const fill = el('div', { className: 'daily-bar-fill' });
     fill.style.width = `${Math.max(2, Math.round((count / max) * 100))}%`;
+    fill.style.setProperty('--i', String(day));
     if (count === 0) fill.classList.add('empty');
     track.appendChild(fill);
     row.appendChild(track);
@@ -397,13 +400,14 @@ function renderLeaderboard(listEl, items, getName, getCount) {
     return;
   }
   const max = items[0] ? getCount(items[0]) : 1;
-  items.forEach((item) => {
+  items.forEach((item, i) => {
     const li = el('li', { className: 'leaderboard-item' });
     const name = el('div', { className: 'leaderboard-name', textContent: getName(item) });
     const count = el('div', { className: 'leaderboard-count', textContent: String(getCount(item)) });
     const track = el('div', { className: 'leaderboard-track' });
     const fill = el('div', { className: 'leaderboard-fill' });
     fill.style.width = `${Math.max(4, Math.round((getCount(item) / max) * 100))}%`;
+    fill.style.setProperty('--i', String(i));
     track.appendChild(fill);
     li.appendChild(name);
     li.appendChild(track);
@@ -509,6 +513,20 @@ async function initThemePicker() {
   });
 }
 
+function initHelpModal() {
+  const modal = document.getElementById('help-modal');
+  const opener = document.getElementById('rules-help');
+  const closer = modal.querySelector('.modal-close');
+  if (!modal || !opener) return;
+
+  opener.addEventListener('click', () => modal.showModal());
+  closer.addEventListener('click', () => modal.close());
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.close();
+  });
+}
+
 async function init() {
   const [rules, fp] = await Promise.all([loadRules(), probeDefaultFavicon()]);
   currentRules = rules;
@@ -516,6 +534,7 @@ async function init() {
   render();
   initThemePicker();
   initStats();
+  initHelpModal();
 }
 
 body.addEventListener('input', async (e) => {
@@ -558,9 +577,14 @@ body.addEventListener('change', async (e) => {
 });
 
 body.addEventListener('click', async (e) => {
-  const target = e.target;
-  if (!target.classList.contains('delete')) return;
-  const index = Number(target.dataset.index);
+  const btn = e.target.closest('.delete');
+  if (!btn) return;
+  const index = Number(btn.dataset.index);
+  const row = btn.closest('tr');
+  if (row && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    row.classList.add('leaving');
+    await new Promise((r) => setTimeout(r, 260));
+  }
   currentRules.splice(index, 1);
   await saveRules(currentRules);
   render();

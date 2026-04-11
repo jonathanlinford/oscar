@@ -8,6 +8,29 @@ body {
   color: var(--text);
   background: var(--bg);
   line-height: 1.5;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@keyframes oscar-pop-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+body > * {
+  opacity: 0;
+  animation: oscar-pop-rise 0.38s cubic-bezier(0.2, 0.75, 0.3, 1) forwards;
+}
+
+body > .popup-masthead   { animation-delay: 0.02s; }
+body > .stats-teaser     { animation-delay: 0.08s; }
+body > .label            { animation-delay: 0.12s; }
+body > #tab-url          { animation-delay: 0.14s; }
+body > #add-from-current { animation-delay: 0.18s; }
+body > #open-options     { animation-delay: 0.22s; }
+body > #status           { animation-delay: 0.26s; }
+
+@media (prefers-reduced-motion: reduce) {
+  body > * { animation: none; opacity: 1; }
 }
 
 .popup-masthead {
@@ -79,6 +102,11 @@ button {
   font-size: 13px;
   font-family: inherit;
   letter-spacing: 0.01em;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease,
+    box-shadow 0.15s ease;
 }
 
 button.primary {
@@ -90,6 +118,13 @@ button.primary {
 button.primary:hover {
   background: var(--primary-hover);
   border-color: var(--primary-hover);
+  box-shadow: 0 3px 10px var(--primary-shadow);
+  transform: translateY(-1px);
+}
+
+button.primary:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 button.secondary {
@@ -100,6 +135,11 @@ button.secondary {
 
 button.secondary:hover {
   background: var(--surface-raised);
+  transform: translateY(-1px);
+}
+
+button.secondary:active {
+  transform: translateY(0);
 }
 
 #status {
