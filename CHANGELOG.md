@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+* Moved the pre-resize icon masters (`icon-source.png`, `icon-closing-source.png`, ~1.9 MB combined) from `icons/` to `design/`. They were never shipped — they're only used to regenerate the 16/32/48/128 raster variants — but they were picked up by Chrome's unpacked-load size because they lived inside the loaded folder. The shipped Web Store zip is unchanged (still 96 KB); the on-disk unpacked size drops by ~1.9 MB
+
 ### Added
 * CI now builds the extension zip on every push to `main`. The `build` job runs after `test` passes, invokes `scripts/build.sh`, and uploads `dist/oscar-<version>.zip` as a workflow artifact (90-day retention) ready to upload to the Chrome Web Store developer dashboard
 * CI now enforces a manifest version bump. A new `scripts/check-version-bump.sh` step in the `test` job compares `manifest.json` "version" between `HEAD` and the base commit (PR base branch, or previous push tip for direct pushes to `main`) and fails if they match. First push to a branch and missing base refs are tolerated
