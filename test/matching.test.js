@@ -61,6 +61,28 @@ describe('hostMatches', () => {
   test('handles the google meet pattern', () => {
     assert.ok(hostMatches('meet.google.com/*', 'https://meet.google.com/abc-defg-hij'));
   });
+
+  test('ignores leading www. on the pattern', () => {
+    // Rule typed as `www.google.com/*` should match bare-hostname URLs too.
+    assert.ok(hostMatches('www.google.com/*', 'https://google.com/search'));
+    assert.ok(hostMatches('www.google.com/*', 'https://www.google.com/search'));
+  });
+
+  test('ignores leading www. on the URL', () => {
+    // Rule typed without www should match URLs that have www.
+    assert.ok(hostMatches('argusleader.com/*', 'https://www.argusleader.com/news'));
+    assert.ok(hostMatches('argusleader.com/*', 'https://argusleader.com/news'));
+  });
+
+  test('www-stripping applies to hostname-only patterns', () => {
+    assert.ok(hostMatches('www.example.com', 'https://example.com/'));
+    assert.ok(hostMatches('example.com', 'https://www.example.com/'));
+  });
+
+  test('www-stripping does not cross subdomains', () => {
+    // Only the literal `www.` prefix is stripped — not arbitrary subdomains.
+    assert.ok(!hostMatches('google.com/*', 'https://mail.google.com/inbox'));
+  });
 });
 
 describe('textMatches', () => {

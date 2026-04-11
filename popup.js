@@ -43,7 +43,6 @@ async function init() {
 
     const newRule = {
       id: crypto.randomUUID(),
-      name: tab.title || url.hostname,
       domainPattern,
       textPattern: '',
       textMode: 'substring',

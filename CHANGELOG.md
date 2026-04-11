@@ -6,11 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+* `www.` is now ignored in domain matching — it's stripped from the leading host part of both the rule pattern and the URL before comparing. `www.google.com/*` matches `google.com` and vice versa, so `argusleader.com/*` also matches `www.argusleader.com`. Only the literal leading `www.` is stripped — arbitrary subdomains are untouched (`google.com/*` still won't match `mail.google.com`). Documented in the "How matching works" dialog
+
 ### Removed
+* Rules no longer have a `name` field. The domain pattern is the label — there's nothing to type twice. The rules list shows `favicon + domain` on the summary row and drops the Name input from the detail editor. Library presets keep their editorial title (only used as the library card label). The in-page countdown toast now shows the page's hostname. Existing stored rules with a `name` field are tolerated — the value is just ignored
 * Default Slack and Zoom rules are no longer seeded on fresh install. Oscar now starts empty — users pick presets from the Rule library or write their own. The `chrome.runtime.onInstalled` handler is gone entirely
 * The "How matching works" section is no longer a whole page section — it lives in a modal triggered by a `?` icon next to the Rules heading
+* `test/mockups/` design-exploration fixtures removed now that the master/detail layout has shipped
 
 ### Fixed
+* Mode select's native drop-arrow had weirdly wide right padding on the collapsed detail row. Switched to `appearance: none` with a tight inline-SVG chevron for a consistent, narrow arrow gutter across browsers
 * Double-toast bug: when multiple `MutationObserver` ticks raced past the `queuedRuleId` guard during the `await getRules()` window, two overlays would spawn and clicking Cancel only dismissed the top one. `content.js` now uses a synchronous `checking` lock, and `startClosure` defensively clears any stray overlays before adding a new one
 * `Mode` column in the Rules table was too narrow — the `Substring ∨` select was clipped. Added explicit column widths for On / Mode / Delay / delete
 

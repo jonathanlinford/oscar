@@ -97,7 +97,7 @@
     return TOAST_THEMES[resolved] || TOAST_THEMES.dark;
   }
 
-  function createOverlay(ruleName, theme) {
+  function createOverlay(label, theme) {
     const host = document.createElement('div');
     host.setAttribute('data-oscar-overlay', '');
     host.style.cssText =
@@ -213,7 +213,7 @@
 
     const title = document.createElement('div');
     title.className = 'title';
-    title.textContent = ruleName || 'Matched rule';
+    title.textContent = label || 'Matched rule';
 
     const subtitle = document.createElement('div');
     subtitle.className = 'subtitle';
@@ -273,7 +273,8 @@
     document.querySelectorAll('[data-oscar-overlay]').forEach((el) => el.remove());
     const endTime = Date.now() + delay;
     const theme = await resolveToastTheme();
-    const overlay = createOverlay(rule.name, theme);
+    const label = location.hostname || rule.domainPattern || 'Matched rule';
+    const overlay = createOverlay(label, theme);
 
     const state = { cancelled: false, intervalId: null };
 
@@ -287,7 +288,7 @@
     chrome.runtime.sendMessage({
       type: 'MATCH_PENDING',
       ruleId: rule.id,
-      ruleName: rule.name,
+      ruleName: rule.domainPattern || label,
       delayMs: delay,
     });
 
@@ -302,7 +303,7 @@
         chrome.runtime.sendMessage({
           type: 'CLOSE_TAB',
           ruleId: rule.id,
-          ruleName: rule.name,
+          ruleName: rule.domainPattern || label,
         });
       }
     }

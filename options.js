@@ -1,7 +1,15 @@
 const $ = (sel) => document.querySelector(sel);
-const body = $('#rules-body');
+const rulesList = $('#rules-list');
 const emptyMsg = $('#empty');
 const libraryGrid = $('#library-grid');
+
+// Expansion state — which rule rows are currently open in the master/detail
+// list. Not persisted across page loads (deliberately — the default is to
+// land on a clean, scannable overview).
+const expandedRuleIds = new Set();
+
+// Drag-to-reorder state.
+let dragSourceId = null;
 
 const RULE_LIBRARY = [
   {
@@ -177,7 +185,6 @@ function buildFaviconImg(pattern) {
 function blankRule() {
   return {
     id: crypto.randomUUID(),
-    name: '',
     domainPattern: '',
     textPattern: '',
     textMode: 'substring',
@@ -206,10 +213,11 @@ function el(tag, props = {}, children = []) {
   return node;
 }
 
-function validateRow(tr, rule) {
-  const domainInput = tr.querySelector('input[data-field="domainPattern"]');
-  const textInput = tr.querySelector('input[data-field="textPattern"]');
-  const enabledInput = tr.querySelector('input[data-field="enabled"]');
+function validateRow(row, rule) {
+  const domainInput = row.querySelector('input[data-field="domainPattern"]');
+  const textInput = row.querySelector('input[data-field="textPattern"]');
+  const enabledInput = row.querySelector('input[data-field="enabled"]');
+  if (!domainInput || !textInput || !enabledInput) return;
 
   const domainOk = (rule.domainPattern || '').trim().length > 0;
   const textPresent = (rule.textPattern || '').trim().length > 0;
@@ -229,50 +237,122 @@ function validateRow(tr, rule) {
   enabledInput.title = domainOk
     ? ''
     : "This rule can't be enabled until it has a domain pattern.";
-  tr.classList.toggle('rule-invalid', !domainOk);
+  row.classList.toggle('rule-invalid', !domainOk);
 }
 
-function buildRow(rule, index) {
-  const tr = el('tr');
-  tr.dataset.index = String(index);
+function statusSummary(rule) {
+  const seconds = ((rule.delayMs ?? 2000) / 1000).toFixed(1).replace(/\.0$/, '');
+  const mode = (rule.textMode || 'substring') === 'regex' ? 'Regex' : 'Substring';
+  return `${seconds}s · ${mode}`;
+}
 
-  const enabledCell = el('td', {}, [
-    el('input', {
-      type: 'checkbox',
-      checked: !!rule.enabled,
-      dataset: { field: 'enabled' },
-    }),
-  ]);
+function buildRuleRow(rule, index) {
+  const row = el('div', { className: 'rule-row' });
+  row.dataset.id = rule.id;
+  row.dataset.index = String(index);
+  if (expandedRuleIds.has(rule.id)) row.classList.add('expanded');
 
-  const nameCell = el('td', {}, [
-    el('div', { className: 'name-with-icon' }, [
-      buildFaviconImg(rule.domainPattern),
-      el('input', {
-        type: 'text',
-        value: rule.name || '',
-        placeholder: 'Slack deep link',
-        dataset: { field: 'name' },
+  /* ---------- summary ---------- */
+
+  const summary = el('div', { className: 'rule-summary' });
+
+  const handle = el('div', {
+    className: 'drag-handle',
+    draggable: true,
+    title: 'Drag to reorder',
+    'aria-label': 'Drag to reorder',
+  });
+  handle.textContent = '⋮⋮';
+
+  const enabledInput = el('input', {
+    type: 'checkbox',
+    checked: !!rule.enabled,
+    dataset: { field: 'enabled' },
+  });
+  const enabledCell = el('div', { className: 'on-cell' }, [enabledInput]);
+
+  const nameCol = el('div', { className: 'name-col' });
+  nameCol.appendChild(buildFaviconImg(rule.domainPattern));
+
+  const domainOk = (rule.domainPattern || '').trim().length > 0;
+  const textPresent = (rule.textPattern || '').trim().length > 0;
+
+  if (domainOk) {
+    nameCol.appendChild(
+      el('span', { className: 'rule-domain', textContent: rule.domainPattern }),
+    );
+    if (!textPresent) {
+      nameCol.appendChild(
+        el('span', {
+          className: 'rule-badge warning',
+          textContent: '!',
+          title: 'No text pattern — will match every page on this domain',
+          'aria-label': 'Warning: no text pattern',
+        }),
+      );
+    }
+  } else {
+    nameCol.appendChild(
+      el('span', {
+        className: 'rule-badge error',
+        textContent: '!',
+        title: "No domain pattern — this rule can't match anything",
+        'aria-label': 'Error: no domain pattern',
       }),
-    ]),
-  ]);
+    );
+    nameCol.appendChild(
+      el('span', { className: 'rule-missing', textContent: 'missing domain' }),
+    );
+  }
 
-  const domainCell = el('td', {}, [
+  const statusEl = el('div', {
+    className: 'rule-status',
+    textContent: statusSummary(rule),
+  });
+
+  const expander = el('button', {
+    className: 'rule-expander',
+    type: 'button',
+    'aria-label': 'Expand rule',
+    'aria-expanded': expandedRuleIds.has(rule.id) ? 'true' : 'false',
+  });
+  expander.appendChild(el('span', { className: 'chevron', textContent: '›' }));
+
+  summary.appendChild(handle);
+  summary.appendChild(enabledCell);
+  summary.appendChild(nameCol);
+  summary.appendChild(statusEl);
+  summary.appendChild(expander);
+
+  /* ---------- detail ---------- */
+
+  const detail = el('div', { className: 'rule-detail' });
+
+  const domainField = el('div', { className: 'field', dataset: { field: 'domainPattern' } });
+  domainField.appendChild(
+    el('label', { className: 'field-label', textContent: 'Domain' }),
+  );
+  domainField.appendChild(
     el('input', {
       type: 'text',
       value: rule.domainPattern || '',
-      placeholder: '*.slack.com/*',
+      placeholder: '*.slack.com/archives/*',
       dataset: { field: 'domainPattern' },
     }),
-  ]);
+  );
 
-  const textCell = el('td', {}, [
+  const textField = el('div', { className: 'field', dataset: { field: 'textPattern' } });
+  textField.appendChild(el('label', { className: 'field-label', textContent: 'Text' }));
+  textField.appendChild(
     el('input', {
       type: 'text',
       value: rule.textPattern || '',
-      placeholder: "We've redirected you…",
+      placeholder: "redirected you to the desktop app",
       dataset: { field: 'textPattern' },
     }),
-  ]);
+  );
+
+  const meta = el('div', { className: 'meta' });
 
   const modeSelect = el('select', { dataset: { field: 'textMode' } });
   ['substring', 'regex'].forEach((mode) => {
@@ -283,38 +363,53 @@ function buildRow(rule, index) {
     });
     modeSelect.appendChild(opt);
   });
-  const modeCell = el('td', {}, [modeSelect]);
+  const modePair = el('div', { className: 'pair' }, [
+    el('span', { className: 'field-label kicker', textContent: 'Mode' }),
+    modeSelect,
+  ]);
 
-  const delayCell = el('td', {}, [
-    el('input', {
-      type: 'number',
-      value: String((rule.delayMs ?? 2000) / 1000),
-      min: '0',
-      step: '0.1',
-      dataset: { field: 'delayMs' },
-    }),
+  const delayInput = el('input', {
+    type: 'number',
+    value: String((rule.delayMs ?? 2000) / 1000),
+    min: '0',
+    step: '0.1',
+    dataset: { field: 'delayMs' },
+  });
+  const delayPair = el('div', { className: 'pair' }, [
+    el('span', { className: 'field-label kicker', textContent: 'Delay' }),
+    delayInput,
+    el('span', { className: 'kicker', textContent: 'sec' }),
   ]);
 
   const deleteBtn = el('button', {
     className: 'delete',
+    type: 'button',
     title: 'Delete rule',
     'aria-label': 'Delete rule',
     dataset: { index: String(index) },
   });
   deleteBtn.appendChild(el('img', { src: 'icons/icon-32.png', alt: '' }));
-  const deleteCell = el('td', { className: 'col-del' }, [deleteBtn]);
 
-  [enabledCell, nameCell, domainCell, textCell, modeCell, delayCell, deleteCell].forEach((c) =>
-    tr.appendChild(c),
-  );
-  validateRow(tr, rule);
-  return tr;
+  meta.appendChild(modePair);
+  meta.appendChild(delayPair);
+  meta.appendChild(el('div', { className: 'meta-spacer' }));
+  meta.appendChild(deleteBtn);
+
+  detail.appendChild(domainField);
+  detail.appendChild(textField);
+  detail.appendChild(meta);
+
+  row.appendChild(summary);
+  row.appendChild(detail);
+
+  validateRow(row, rule);
+  return row;
 }
 
 function render() {
-  while (body.firstChild) body.removeChild(body.firstChild);
+  while (rulesList.firstChild) rulesList.removeChild(rulesList.firstChild);
   emptyMsg.hidden = currentRules.length > 0;
-  currentRules.forEach((rule, index) => body.appendChild(buildRow(rule, index)));
+  currentRules.forEach((rule, index) => rulesList.appendChild(buildRuleRow(rule, index)));
   renderLibrary();
 }
 
@@ -344,7 +439,8 @@ function buildLibraryCard(preset) {
   });
   addBtn.addEventListener('click', async () => {
     if (isPresetInstalled(preset)) return;
-    const rule = { id: crypto.randomUUID(), enabled: true, ...preset };
+    const { name: _libName, ...ruleFields } = preset;
+    const rule = { id: crypto.randomUUID(), enabled: true, ...ruleFields };
     currentRules.push(rule);
     await saveRules(currentRules);
     render();
@@ -510,7 +606,7 @@ async function renderStats() {
   renderHourlyChart(insights.hourlyBars);
   renderDailyChart(insights.dailyBars);
   renderLeaderboard(topDomainsList, insights.topDomains, (d) => d.host, (d) => d.count);
-  renderLeaderboard(topRulesList, insights.topRules, (r) => r.name, (r) => r.closeCount);
+  renderLeaderboard(topRulesList, insights.topRules, (r) => r.name || '(unnamed)', (r) => r.closeCount);
 }
 
 async function initStats() {
@@ -568,11 +664,55 @@ async function init() {
   initHelpModal();
 }
 
-body.addEventListener('input', async (e) => {
+function updateSummaryAfterEdit(row, rule) {
+  const statusEl = row.querySelector('.rule-summary .rule-status');
+  if (statusEl) statusEl.textContent = statusSummary(rule);
+}
+
+function rebuildNameCol(row, rule) {
+  const nameCol = row.querySelector('.rule-summary .name-col');
+  if (!nameCol) return;
+  while (nameCol.firstChild) nameCol.removeChild(nameCol.firstChild);
+
+  nameCol.appendChild(buildFaviconImg(rule.domainPattern));
+
+  const domainOk = (rule.domainPattern || '').trim().length > 0;
+  const textPresent = (rule.textPattern || '').trim().length > 0;
+
+  if (domainOk) {
+    nameCol.appendChild(
+      el('span', { className: 'rule-domain', textContent: rule.domainPattern }),
+    );
+    if (!textPresent) {
+      nameCol.appendChild(
+        el('span', {
+          className: 'rule-badge warning',
+          textContent: '!',
+          title: 'No text pattern — will match every page on this domain',
+          'aria-label': 'Warning: no text pattern',
+        }),
+      );
+    }
+  } else {
+    nameCol.appendChild(
+      el('span', {
+        className: 'rule-badge error',
+        textContent: '!',
+        title: "No domain pattern — this rule can't match anything",
+        'aria-label': 'Error: no domain pattern',
+      }),
+    );
+    nameCol.appendChild(
+      el('span', { className: 'rule-missing', textContent: 'missing domain' }),
+    );
+  }
+}
+
+rulesList.addEventListener('input', async (e) => {
   const target = e.target;
-  const tr = target.closest('tr');
-  if (!tr) return;
-  const index = Number(tr.dataset.index);
+  const row = target.closest('.rule-row');
+  if (!row) return;
+  const index = Number(row.dataset.index);
   const field = target.dataset.field;
   if (!field) return;
 
@@ -590,47 +730,165 @@ body.addEventListener('input', async (e) => {
 
   currentRules[index][field] = value;
 
-  if (field === 'domainPattern') {
-    const img = tr.querySelector('img.favicon');
-    if (img) setFavicon(img, value);
-  }
-
   if (field === 'domainPattern' || field === 'textPattern') {
-    validateRow(tr, currentRules[index]);
+    rebuildNameCol(row, currentRules[index]);
+  }
+  if (field === 'delayMs' || field === 'textMode') {
+    updateSummaryAfterEdit(row, currentRules[index]);
+  }
+  if (field === 'domainPattern' || field === 'textPattern') {
+    validateRow(row, currentRules[index]);
   }
 
   await saveRules(currentRules);
 });
 
-body.addEventListener('change', async (e) => {
+rulesList.addEventListener('change', async (e) => {
   if (e.target.tagName !== 'SELECT') return;
-  const tr = e.target.closest('tr');
-  if (!tr) return;
-  const index = Number(tr.dataset.index);
+  const row = e.target.closest('.rule-row');
+  if (!row) return;
+  const index = Number(row.dataset.index);
   currentRules[index][e.target.dataset.field] = e.target.value;
+  updateSummaryAfterEdit(row, currentRules[index]);
   await saveRules(currentRules);
 });
 
-body.addEventListener('click', async (e) => {
-  const btn = e.target.closest('.delete');
-  if (!btn) return;
-  const index = Number(btn.dataset.index);
-  const row = btn.closest('tr');
-  if (row && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    row.classList.add('leaving');
-    await new Promise((r) => setTimeout(r, 260));
+rulesList.addEventListener('click', async (e) => {
+  // Delete button in the detail panel
+  const deleteBtn = e.target.closest('.delete');
+  if (deleteBtn) {
+    const index = Number(deleteBtn.dataset.index);
+    const row = deleteBtn.closest('.rule-row');
+    const id = row?.dataset.id;
+    if (row && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      row.classList.add('leaving');
+      row.style.opacity = '0';
+      await new Promise((r) => setTimeout(r, 220));
+    }
+    if (id) expandedRuleIds.delete(id);
+    currentRules.splice(index, 1);
+    await saveRules(currentRules);
+    render();
+    return;
   }
-  currentRules.splice(index, 1);
+
+  // Expand / collapse when clicking non-interactive areas of the summary
+  const summary = e.target.closest('.rule-summary');
+  if (!summary) return;
+  if (e.target.closest('input, select, .delete, .drag-handle')) return;
+
+  const row = summary.closest('.rule-row');
+  const id = row?.dataset.id;
+  if (!id) return;
+  if (expandedRuleIds.has(id)) {
+    expandedRuleIds.delete(id);
+    row.classList.remove('expanded');
+    row.querySelector('.rule-expander')?.setAttribute('aria-expanded', 'false');
+  } else {
+    expandedRuleIds.add(id);
+    row.classList.add('expanded');
+    row.querySelector('.rule-expander')?.setAttribute('aria-expanded', 'true');
+  }
+});
+
+// Drag-and-drop reordering via the handle column
+
+function clearDropHighlights() {
+  document.querySelectorAll('.rule-row.drop-above, .rule-row.drop-below').forEach((el) => {
+    el.classList.remove('drop-above', 'drop-below');
+  });
+}
+
+rulesList.addEventListener('dragstart', (e) => {
+  const handle = e.target.closest('.drag-handle');
+  if (!handle) {
+    e.preventDefault();
+    return;
+  }
+  const row = handle.closest('.rule-row');
+  if (!row) return;
+  dragSourceId = row.dataset.id;
+  row.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  // Firefox needs some data set on the transfer for drag to actually start
+  try {
+    e.dataTransfer.setData('text/plain', dragSourceId);
+  } catch {}
+});
+
+rulesList.addEventListener('dragover', (e) => {
+  if (dragSourceId == null) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+
+  const row = e.target.closest('.rule-row');
+  if (!row || row.dataset.id === dragSourceId) {
+    clearDropHighlights();
+    return;
+  }
+
+  const rect = row.getBoundingClientRect();
+  const midpoint = rect.top + rect.height / 2;
+  const above = e.clientY < midpoint;
+
+  clearDropHighlights();
+  row.classList.add(above ? 'drop-above' : 'drop-below');
+});
+
+rulesList.addEventListener('dragleave', (e) => {
+  // Only clear if we've actually left the rules list entirely
+  if (!e.relatedTarget || !rulesList.contains(e.relatedTarget)) {
+    clearDropHighlights();
+  }
+});
+
+rulesList.addEventListener('drop', async (e) => {
+  if (dragSourceId == null) return;
+  e.preventDefault();
+
+  const target = e.target.closest('.rule-row');
+  const sourceId = dragSourceId;
+
+  clearDropHighlights();
+  document.querySelectorAll('.rule-row.dragging').forEach((el) =>
+    el.classList.remove('dragging'),
+  );
+  dragSourceId = null;
+
+  if (!target || target.dataset.id === sourceId) return;
+
+  const sourceIdx = currentRules.findIndex((r) => r.id === sourceId);
+  let targetIdx = currentRules.findIndex((r) => r.id === target.dataset.id);
+  if (sourceIdx < 0 || targetIdx < 0) return;
+
+  const rect = target.getBoundingClientRect();
+  const midpoint = rect.top + rect.height / 2;
+  const insertAfter = e.clientY >= midpoint;
+
+  const [moved] = currentRules.splice(sourceIdx, 1);
+  if (sourceIdx < targetIdx) targetIdx -= 1;
+  currentRules.splice(insertAfter ? targetIdx + 1 : targetIdx, 0, moved);
+
   await saveRules(currentRules);
   render();
+});
+
+rulesList.addEventListener('dragend', () => {
+  clearDropHighlights();
+  document.querySelectorAll('.rule-row.dragging').forEach((el) =>
+    el.classList.remove('dragging'),
+  );
+  dragSourceId = null;
 });
 
 $('#add-rule').addEventListener('click', async () => {
-  currentRules.push(blankRule());
+  const rule = blankRule();
+  currentRules.push(rule);
+  expandedRuleIds.add(rule.id);
   await saveRules(currentRules);
   render();
-  const lastRow = body.querySelector('tr:last-child input[data-field="name"]');
-  if (lastRow) lastRow.focus();
+  const domainInput = rulesList.querySelector('.rule-row:last-child input[data-field="domainPattern"]');
+  if (domainInput) domainInput.focus();
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {

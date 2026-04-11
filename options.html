@@ -25,20 +25,16 @@
         </div>
         <button id="add-rule" class="primary">Add rule</button>
       </div>
-      <table id="rules-table">
-        <thead>
-          <tr>
-            <th class="col-on">On</th>
-            <th>Name</th>
-            <th>Domain pattern</th>
-            <th>Text pattern</th>
-            <th class="col-mode">Mode</th>
-            <th class="col-delay">Delay (s)</th>
-            <th class="col-del"></th>
-          </tr>
-        </thead>
-        <tbody id="rules-body"></tbody>
-      </table>
+      <div class="rules-wrap">
+        <div class="rules-list-header" aria-hidden="true">
+          <div></div>
+          <div class="kicker">On</div>
+          <div class="kicker">Domain</div>
+          <div class="kicker col-status">Summary</div>
+          <div></div>
+        </div>
+        <div id="rules-list"></div>
+      </div>
       <p id="empty" class="empty" hidden>No rules yet. Pick a preset from the Rule library below, or click <b>Add rule</b> to write one by hand.</p>
     </section>
 
@@ -111,6 +107,7 @@
         <dl>
           <dt>Domain pattern</dt>
           <dd>Matches against <code>hostname</code> or <code>hostname + pathname</code>. Use <code>*</code> as a wildcard. Examples: <code>*.slack.com/archives/*</code>, <code>zoom.us/j/*</code>, <code>meet.google.com/*</code>.</dd>
+          <dd><strong>A leading <code>www.</code> is ignored</strong> on both the rule and the URL. So <code>www.google.com/*</code> also matches <code>google.com</code>, and <code>argusleader.com/*</code> also matches <code>www.argusleader.com</code>.</dd>
           <dt>Text pattern</dt>
           <dd>Text that must appear on the page before Oscar closes the tab. Leave blank to match any page on the domain (use with care). Substring mode is case-insensitive.</dd>
           <dt>Delay</dt>
