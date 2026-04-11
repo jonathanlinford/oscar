@@ -1142,6 +1142,22 @@ code {
   color: var(--text-muted);
 }
 
+.colophon .colophon-link {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.colophon .colophon-link:hover {
+  color: var(--primary);
+}
+
+.colophon .colophon-sep {
+  margin: 0 2px;
+}
+
 :root[data-theme="garbage"] .colophon { font-style: normal; }
 
 /* Garbage theme overrides ----------------------------------------------- */
