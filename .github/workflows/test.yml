@@ -10,7 +10,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Need history so check-version-bump.sh can diff manifest.json
+          # against the base commit (PR base or previous push tip).
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: npm test
+      - name: Check manifest version bump
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: bash scripts/check-version-bump.sh
+
+  build:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read version
+        id: version
+        run: echo "version=$(grep '\"version\"' manifest.json | head -1 | sed -E 's/.*\"version\"[[:space:]]*:[[:space:]]*\"([^\"]+)\".*/\1/')" >> "$GITHUB_OUTPUT"
+      - name: Build extension zip
+        run: bash scripts/build.sh
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oscar-${{ steps.version.outputs.version }}
+          path: dist/oscar-*.zip
+          if-no-files-found: error
+          retention-days: 90
