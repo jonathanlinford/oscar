@@ -15,33 +15,6 @@ const CLOSING_ICONS = {
   128: 'icons/icon-closing-128.png',
 };
 
-const DEFAULT_RULES = [
-  {
-    name: 'Slack deep link',
-    domainPattern: '*.slack.com/archives/*',
-    textPattern: 'redirected you to the desktop app',
-    textMode: 'substring',
-    delayMs: 2000,
-    enabled: true,
-  },
-  {
-    name: 'Zoom launch meeting',
-    domainPattern: '*.zoom.us/*',
-    textPattern: 'Click Open Zoom Meetings',
-    textMode: 'substring',
-    delayMs: 2500,
-    enabled: true,
-  },
-];
-
-chrome.runtime.onInstalled.addListener(async ({ reason }) => {
-  if (reason !== 'install') return;
-  const { rules } = await chrome.storage.sync.get('rules');
-  if (rules && rules.length) return;
-  const seeded = DEFAULT_RULES.map((r) => ({ id: crypto.randomUUID(), ...r }));
-  await chrome.storage.sync.set({ rules: seeded });
-});
-
 function markTabClosing(tabId, ruleName) {
   chrome.action.setIcon({ tabId, path: CLOSING_ICONS }).catch(() => {});
   chrome.action.setBadgeBackgroundColor({ tabId, color: '#dc2626' }).catch(() => {});

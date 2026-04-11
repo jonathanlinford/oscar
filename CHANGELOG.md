@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Removed
+* Default Slack and Zoom rules are no longer seeded on fresh install. Oscar now starts empty — users pick presets from the Rule library or write their own. The `chrome.runtime.onInstalled` handler is gone entirely
+
 ### Added
 * Unit test suite under `test/` built on Node's `node:test` runner — covers domain/text matching (`matching.js`) and the pure analytics helpers (`coerce`, `computeInsights`, `formatDuration`, `dateKey`, `hourLabel`) plus `recordClose`/`recordCancel`/`reset` via a stubbed `chrome.storage`
 * GitHub Actions workflow (`.github/workflows/test.yml`) runs `npm test` on push to `main` and all pull requests
