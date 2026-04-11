@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Fixed
-* CI workflow set `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` at the workflow level to opt every JS-based action (checkout, setup-node, upload-artifact) into Node 24 ahead of GitHub's June 2026 forced cutover. Silences the "Node.js 20 actions are deprecated" annotations without guessing which action major versions support Node 24 natively
+* CI: bumped `actions/checkout@v4 → v6`, `actions/setup-node@v4 → v6`, `actions/upload-artifact@v4 → v7`. All three new majors target Node 24 natively, so the Node 20 deprecation annotations are gone (the prior `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` opt-in is no longer needed and has been removed)
 * README: added www-stripping note to the Domain pattern docs, refreshed the file-layout listing to include `matching.js`, `action-presenter.js`, `design/`, `scripts/check-version-bump.sh`, `test/`, `.github/workflows/`, and mentioned the CI-built zip artifact as a second packaging option alongside `npm run build`
 
 ### Changed

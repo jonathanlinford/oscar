@@ -5,25 +5,16 @@ on:
     branches: [main]
   pull_request:
 
-# Opt every JS-based action in this workflow (checkout, setup-node,
-# upload-artifact, …) into Node 24 now, ahead of GitHub's June 2026
-# forced cutover. Silences the "Node.js 20 actions are deprecated"
-# warning without having to guess which action versions support Node 24
-# natively. See:
-#   https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Need history so check-version-bump.sh can diff manifest.json
           # against the base commit (PR base or previous push tip).
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
       - run: npm test
@@ -38,14 +29,14 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Read version
         id: version
         run: echo "version=$(grep '\"version\"' manifest.json | head -1 | sed -E 's/.*\"version\"[[:space:]]*:[[:space:]]*\"([^\"]+)\".*/\1/')" >> "$GITHUB_OUTPUT"
       - name: Build extension zip
         run: bash scripts/build.sh
       - name: Upload zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: oscar-${{ steps.version.outputs.version }}
           path: dist/oscar-*.zip
