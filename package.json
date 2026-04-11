@@ -26,6 +26,7 @@
   ],
   "scripts": {
     "build": "bash scripts/build.sh",
-    "test": "node --test 'test/**/*.test.js'"
+    "test": "node --test 'test/**/*.test.js'",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-include='matching.js' --test-coverage-include='analytics.js' 'test/**/*.test.js'"
   }
 }

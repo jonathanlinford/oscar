@@ -2,16 +2,9 @@
 
 const { test, describe, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
-const { loadModule, makeChromeStub } = require('./helpers');
-
-function freshAnalytics() {
-  const chrome = makeChromeStub();
-  const { OscarAnalytics } = loadModule('analytics.js', { chrome });
-  return { OscarAnalytics, chrome };
-}
+const { OscarAnalytics, resetAnalyticsState } = require('./helpers');
 
 describe('formatDuration', () => {
-  const { OscarAnalytics } = freshAnalytics();
   const f = OscarAnalytics.formatDuration;
 
   test('zero and negative values yield 0s', () => {
@@ -44,7 +37,6 @@ describe('formatDuration', () => {
 });
 
 describe('dateKey', () => {
-  const { OscarAnalytics } = freshAnalytics();
   test('formats as YYYY-MM-DD', () => {
     const d = new Date(2026, 3, 5); // local time, Apr 5 2026
     assert.equal(OscarAnalytics.dateKey(d), '2026-04-05');
@@ -57,7 +49,6 @@ describe('dateKey', () => {
 });
 
 describe('hourLabel', () => {
-  const { OscarAnalytics } = freshAnalytics();
   const h = OscarAnalytics.hourLabel;
 
   test('midnight and noon', () => {
@@ -74,8 +65,6 @@ describe('hourLabel', () => {
 });
 
 describe('coerce', () => {
-  const { OscarAnalytics } = freshAnalytics();
-
   test('blank input returns a blank record', () => {
     const b = OscarAnalytics.coerce(null);
     assert.equal(b.totalCloses, 0);
@@ -101,11 +90,14 @@ describe('coerce', () => {
     assert.ok(Array.isArray(b.recentCloses));
     assert.equal(b.recentCloses.length, 0);
   });
+
+  test('undefined input returns a blank record', () => {
+    const b = OscarAnalytics.coerce(undefined);
+    assert.equal(b.totalCloses, 0);
+  });
 });
 
 describe('computeInsights', () => {
-  const { OscarAnalytics } = freshAnalytics();
-
   test('empty data returns all-zero summary', () => {
     const i = OscarAnalytics.computeInsights(null);
     assert.equal(i.totalCloses, 0);
@@ -150,6 +142,12 @@ describe('computeInsights', () => {
     assert.equal(i.topRules[0].cancelCount, 2);
   });
 
+  test('topRules handles unnamed rules gracefully', () => {
+    const raw = { rules: { r1: { closeCount: 5 } } };
+    const i = OscarAnalytics.computeInsights(raw);
+    assert.equal(i.topRules[0].name, 'Unnamed');
+  });
+
   test('peakHour points at the max hour', () => {
     const hourly = Array(24).fill(0);
     hourly[14] = 7;
@@ -158,6 +156,14 @@ describe('computeInsights', () => {
     assert.equal(i.peakHour, 14);
     assert.equal(i.peakHourCount, 7);
     assert.equal(i.peakHourLabel, '2pm');
+  });
+
+  test('peakDay picks the busiest day of the week', () => {
+    const daily = [0, 0, 20, 5, 0, 0, 0];
+    const i = OscarAnalytics.computeInsights({ daily });
+    assert.equal(i.peakDay, 2);
+    assert.equal(i.peakDayCount, 20);
+    assert.equal(i.peakDayLabel, 'Tuesday');
   });
 
   test('cancelRate is cancels / (closes + cancels)', () => {
@@ -170,11 +176,38 @@ describe('computeInsights', () => {
     const i = OscarAnalytics.computeInsights({ totalCloses: 12 });
     assert.equal(i.timeSavedSec, 12 * OscarAnalytics.TIME_SAVED_SEC_PER_CLOSE);
   });
+
+  test('currentStreak counts consecutive days with closes ending today', () => {
+    const now = new Date();
+    const DAY = 86400000;
+    const byDate = {};
+    for (let i = 0; i < 4; i++) {
+      const d = new Date(now.getTime() - i * DAY);
+      byDate[OscarAnalytics.dateKey(d)] = 1;
+    }
+    const insights = OscarAnalytics.computeInsights({ byDate });
+    assert.ok(insights.currentStreak >= 4);
+  });
+});
+
+describe('formatDate', () => {
+  test('returns placeholder for missing timestamps', () => {
+    assert.equal(OscarAnalytics.formatDate(null), '—');
+    assert.equal(OscarAnalytics.formatDate(0), '—');
+  });
+
+  test('returns a non-empty string for real timestamps', () => {
+    const out = OscarAnalytics.formatDate(Date.now());
+    assert.ok(typeof out === 'string');
+    assert.ok(out.length > 0);
+    assert.notEqual(out, '—');
+  });
 });
 
 describe('recordClose + recordCancel', () => {
+  beforeEach(() => resetAnalyticsState());
+
   test('recordClose bumps counters and records per-rule + per-domain stats', async () => {
-    const { OscarAnalytics } = freshAnalytics();
     await OscarAnalytics.recordClose({
       url: 'https://app.slack.com/archives/C123',
       ruleId: 'r1',
@@ -189,8 +222,22 @@ describe('recordClose + recordCancel', () => {
     assert.equal(a.recentCloses[0].host, 'app.slack.com');
   });
 
+  test('recordClose without a ruleId or url still bumps the total', async () => {
+    await OscarAnalytics.recordClose({});
+    const a = await OscarAnalytics.load();
+    assert.equal(a.totalCloses, 1);
+    assert.equal(Object.keys(a.rules).length, 0);
+    assert.equal(Object.keys(a.domains).length, 0);
+  });
+
+  test('recordClose with a malformed URL skips the domain bookkeeping', async () => {
+    await OscarAnalytics.recordClose({ url: 'not-a-url', ruleId: 'r1', ruleName: 'R' });
+    const a = await OscarAnalytics.load();
+    assert.equal(a.totalCloses, 1);
+    assert.equal(Object.keys(a.domains).length, 0);
+  });
+
   test('recordCancel bumps totals without touching closes', async () => {
-    const { OscarAnalytics } = freshAnalytics();
     await OscarAnalytics.recordCancel({ ruleId: 'r1', ruleName: 'Slack' });
     const a = await OscarAnalytics.load();
     assert.equal(a.totalCancels, 1);
@@ -198,8 +245,13 @@ describe('recordClose + recordCancel', () => {
     assert.equal(a.rules.r1.cancelCount, 1);
   });
 
+  test('recordCancel without a ruleId still bumps the total', async () => {
+    await OscarAnalytics.recordCancel({});
+    const a = await OscarAnalytics.load();
+    assert.equal(a.totalCancels, 1);
+  });
+
   test('recentCloses is capped at 100', async () => {
-    const { OscarAnalytics } = freshAnalytics();
     for (let i = 0; i < 105; i++) {
       await OscarAnalytics.recordClose({
         url: `https://site-${i}.example.com/`,
@@ -216,7 +268,6 @@ describe('recordClose + recordCancel', () => {
   });
 
   test('reset zeroes everything', async () => {
-    const { OscarAnalytics } = freshAnalytics();
     await OscarAnalytics.recordClose({ url: 'https://a.com', ruleId: 'r1', ruleName: 'R' });
     await OscarAnalytics.reset();
     const a = await OscarAnalytics.load();

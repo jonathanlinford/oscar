@@ -2,9 +2,8 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
-const { loadModule } = require('./helpers');
+const { OscarMatching } = require('./helpers');
 
-const { OscarMatching } = loadModule('matching.js');
 const { globToRegex, hostMatches, textMatches } = OscarMatching;
 
 describe('globToRegex', () => {
