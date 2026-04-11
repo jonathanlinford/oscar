@@ -85,6 +85,7 @@
       runtime: {
         // Swallow the favicon API — return a dummy URL that will 404, options.js falls back gracefully
         getURL: (p) => 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22/>',
+        getManifest: () => ({ version: '0.1.13' }),
       },
     };
   </script>
@@ -175,6 +176,8 @@
       <span>Oscar is local-only. No accounts, no telemetry, no servers.</span>
       <span class="colophon-sep" aria-hidden="true"> · </span>
       <a class="colophon-link" href="https://github.com/jonathanlinford/oscar" target="_blank" rel="noopener">source on GitHub</a>
+      <span class="colophon-sep" aria-hidden="true"> · </span>
+      <span class="colophon-version" id="version-label"></span>
     </footer>
   </main>
 

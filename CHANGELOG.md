@@ -7,7 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
-* Options page colophon now links to the GitHub repository at [github.com/jonathanlinford/oscar](https://github.com/jonathanlinford/oscar)
+* Options page colophon now links to the GitHub repository at [github.com/jonathanlinford/oscar](https://github.com/jonathanlinford/oscar) and displays the installed extension version (read from `chrome.runtime.getManifest().version` at render time so it never drifts from `manifest.json`)
+
+### Fixed
+* CI: bumped `actions/setup-node` to Node 22. `node --test` glob expansion (`'test/**/*.test.js'`) landed in Node 21 — on the old Node 20 runner it was looking for a literal file named `**/*.test.js` and failing
+* `package.json` version was stuck at 0.1.11 while `manifest.json` drifted. Synced both to 0.1.13
 
 ### Changed
 * `www.` is now ignored in domain matching — it's stripped from the leading host part of both the rule pattern and the URL before comparing. `www.google.com/*` matches `google.com` and vice versa, so `argusleader.com/*` also matches `www.argusleader.com`. Only the literal leading `www.` is stripped — arbitrary subdomains are untouched (`google.com/*` still won't match `mail.google.com`). Documented in the "How matching works" dialog

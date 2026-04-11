@@ -654,6 +654,15 @@ function initHelpModal() {
   });
 }
 
+function initVersionLabel() {
+  const el = document.getElementById('version-label');
+  if (!el) return;
+  try {
+    const v = chrome.runtime.getManifest().version;
+    el.textContent = `v${v}`;
+  } catch {}
+}
+
 async function init() {
   const [rules, fp] = await Promise.all([loadRules(), probeDefaultFavicon()]);
   currentRules = rules;
@@ -662,6 +671,7 @@ async function init() {
   initThemePicker();
   initStats();
   initHelpModal();
+  initVersionLabel();
 }
 
 function updateSummaryAfterEdit(row, rule) {

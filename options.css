@@ -1158,6 +1158,13 @@ code {
   margin: 0 2px;
 }
 
+.colophon .colophon-version {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
 :root[data-theme="garbage"] .colophon { font-style: normal; }
 
 /* Garbage theme overrides ----------------------------------------------- */
