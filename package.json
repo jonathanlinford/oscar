@@ -1,0 +1,31 @@
+{
+  "name": "oscar-tab-autocloser",
+  "version": "0.1.11",
+  "description": "Chrome extension that auto-closes tabs after desktop-app deep links fire. Matches on domain and page text.",
+  "private": true,
+  "license": "MIT",
+  "author": {
+    "name": "Jonny Linford",
+    "url": "https://github.com/jonathanlinford"
+  },
+  "homepage": "https://github.com/jonathanlinford/oscar",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jonathanlinford/oscar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jonathanlinford/oscar/issues"
+  },
+  "keywords": [
+    "chrome-extension",
+    "productivity",
+    "tabs",
+    "deep-link",
+    "slack",
+    "zoom"
+  ],
+  "scripts": {
+    "build": "bash scripts/build.sh",
+    "test": "echo \"no tests yet\" && exit 0"
+  }
+}

@@ -1,0 +1,84 @@
+:root {
+  color-scheme: light;
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --text: #1f2937;
+  --text-muted: #6b7280;
+  --text-strong: #111827;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-contrast: #ffffff;
+  --primary-shadow: rgba(37, 99, 235, 0.12);
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --success: #059669;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --secondary-bg: #e5e7eb;
+  --secondary-bg-hover: #d1d5db;
+  --code-bg: #f3f4f6;
+  --row-border: #f3f4f6;
+  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-feature: normal;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-raised: #182338;
+  --border: #1f2b44;
+  --border-strong: #2a3a5a;
+  --text: #e5e7eb;
+  --text-muted: #94a3b8;
+  --text-strong: #f8fafc;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-contrast: #ffffff;
+  --primary-shadow: rgba(59, 130, 246, 0.25);
+  --danger: #f87171;
+  --danger-hover: #ef4444;
+  --success: #34d399;
+  --input-bg: #0b1220;
+  --input-border: #2a3a5a;
+  --secondary-bg: #1f2b44;
+  --secondary-bg-hover: #2a3a5a;
+  --code-bg: #1f2b44;
+  --row-border: #1a243b;
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="garbage"] {
+  color-scheme: light;
+  --bg: #3d4a1a;
+  --surface: #5d6b2a;
+  --surface-raised: #6f7d32;
+  --border: #8b9b3f;
+  --border-strong: #a5b84c;
+  --text: #fff8dc;
+  --text-muted: #d4c97a;
+  --text-strong: #ffffe0;
+  --primary: #9acd32;
+  --primary-hover: #b5d94e;
+  --primary-contrast: #1a2008;
+  --primary-shadow: rgba(154, 205, 50, 0.35);
+  --danger: #c1440e;
+  --danger-hover: #e25822;
+  --success: #b5d94e;
+  --input-bg: #2a3510;
+  --input-border: #8b9b3f;
+  --secondary-bg: #4a5822;
+  --secondary-bg-hover: #5d6b2a;
+  --code-bg: #1a2008;
+  --row-border: #4a5822;
+  --shadow-md: 4px 4px 0 rgba(0, 0, 0, 0.3);
+  --radius: 3px 11px 4px 9px;
+  --radius-sm: 2px 5px 3px 4px;
+  --font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
+}

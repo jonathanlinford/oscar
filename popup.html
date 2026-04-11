@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="popup.css">
+  <script src="theme.js"></script>
+  <script src="analytics.js"></script>
+</head>
+<body>
+  <h1>Oscar</h1>
+  <div id="stats-teaser" class="stats-teaser" hidden>
+    <div class="teaser-cell">
+      <div class="teaser-value" id="teaser-total">0</div>
+      <div class="teaser-label">closed</div>
+    </div>
+    <div class="teaser-cell">
+      <div class="teaser-value" id="teaser-today">0</div>
+      <div class="teaser-label">today</div>
+    </div>
+    <div class="teaser-cell">
+      <div class="teaser-value" id="teaser-saved">0s</div>
+      <div class="teaser-label">saved</div>
+    </div>
+  </div>
+  <div class="label">Current tab</div>
+  <div id="tab-url" class="mono">Loading…</div>
+  <button id="add-from-current" class="primary">Create rule from this tab</button>
+  <button id="open-options" class="secondary">Manage rules…</button>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

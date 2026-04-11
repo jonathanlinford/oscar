@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Oscar — Rules</title>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="options.css">
+  <script src="theme.js"></script>
+  <script src="analytics.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Oscar</h1>
+    <p class="tagline">Auto-close tabs after desktop-app deep links fire.</p>
+  </header>
+  <main>
+    <section id="stats-section">
+      <div class="section-header">
+        <h2>Stats</h2>
+        <button id="reset-stats" class="ghost">Reset</button>
+      </div>
+      <div id="stats-empty" class="empty" hidden>Oscar hasn't closed any tabs yet. Stats will appear here after the first close.</div>
+      <div id="stats-content" hidden>
+        <div class="stat-grid" id="stat-grid"></div>
+        <div class="chart-row">
+          <div class="chart-block">
+            <div class="chart-title">By hour of day</div>
+            <div class="hourly-chart" id="hourly-chart"></div>
+            <div class="hourly-axis">
+              <span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span>
+            </div>
+          </div>
+          <div class="chart-block">
+            <div class="chart-title">By day of week</div>
+            <div class="daily-chart" id="daily-chart"></div>
+          </div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-block">
+            <div class="chart-title">Top domains</div>
+            <ul class="leaderboard" id="top-domains"></ul>
+          </div>
+          <div class="chart-block">
+            <div class="chart-title">Top rules</div>
+            <ul class="leaderboard" id="top-rules"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="theme-section">
+      <div class="section-header">
+        <h2>Appearance</h2>
+      </div>
+      <div class="theme-picker" role="radiogroup" aria-label="Theme">
+        <label><input type="radio" name="theme" value="system"><span>System</span></label>
+        <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+        <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+        <label><input type="radio" name="theme" value="garbage"><span>Garbage</span></label>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Rules</h2>
+        <button id="add-rule" class="primary">Add rule</button>
+      </div>
+      <table id="rules-table">
+        <thead>
+          <tr>
+            <th>On</th>
+            <th>Name</th>
+            <th>Domain pattern</th>
+            <th>Text pattern</th>
+            <th>Mode</th>
+            <th>Delay (s)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rules-body"></tbody>
+      </table>
+      <p id="empty" class="empty" hidden>No rules yet. Click <b>Add rule</b> to create one.</p>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Rule library</h2>
+      </div>
+      <p class="library-intro">One-click presets for common desktop-app deep links. Tweak the text pattern after adding if the page doesn't match.</p>
+      <div id="library-grid" class="library-grid"></div>
+    </section>
+
+    <section class="help">
+      <h2>How matching works</h2>
+      <dl>
+        <dt>Domain pattern</dt>
+        <dd>Matches against <code>hostname</code> or <code>hostname + pathname</code>. Use <code>*</code> as a wildcard. Examples: <code>*.slack.com/archives/*</code>, <code>zoom.us/j/*</code>, <code>meet.google.com/*</code>.</dd>
+        <dt>Text pattern</dt>
+        <dd>Text that must appear on the page before Oscar closes the tab. Leave blank to match any page on the domain (use with care). Substring mode is case-insensitive.</dd>
+        <dt>Delay</dt>
+        <dd>How long to wait after a match before closing the tab. This gives the page's deep-link handler time to fire the <code>slack://</code>, <code>zoommtg://</code>, etc. protocol.</dd>
+      </dl>
+    </section>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build artifacts
+dist/
+*.zip
+*.crx
+*.pem
+
+# nanobanana working output (icon variants pre-selection)
+nanobanana-output/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local env
+.env
+.env.local
