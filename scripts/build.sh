@@ -29,6 +29,7 @@ rm -f "$OUTPUT"
 EXTENSION_FILES=(
   manifest.json
   analytics.js
+  action-presenter.js
   background.js
   content.js
   matching.js
