@@ -1,7 +1,7 @@
 {
   "name": "oscar-tab-autocloser",
-  "version": "0.1.19",
-  "description": "Chrome extension that auto-closes tabs after desktop-app deep links fire. Matches on domain and page text.",
+  "version": "0.1.20",
+  "description": "Chrome extension that auto-closes the landing-page tabs that desktop apps leave behind after their deep links fire. Matches on domain and page text.",
   "private": true,
   "license": "MIT",
   "author": {

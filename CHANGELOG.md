@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+* `manifest.json` description (which populates the Chrome Web Store "Summary" field) no longer enumerates specific desktop-app brand names. The CWS review team rejected 0.1.19 as "excessive / irrelevant keywords" ("Yellow Argon" violation ID) for listing ten brand names across Summary, Description, and Single-purpose fields — all three have been rewritten to describe the behavior generically
+
 ### Fixed
 * CI build job no longer produces a double-zipped artifact. GitHub wraps every uploaded artifact in its own zip at download time; the old workflow pointed `upload-artifact` at `dist/oscar-*.zip` directly, so downloaded artifacts were zip-containing-a-zip and the Chrome Web Store rejected them with *"No manifest found in package"*. The build step now extracts `dist/oscar-*.zip` into `dist/unpacked/` and uploads the extracted directory — GitHub's download wrapper then IS the valid extension zip (one layer of zipping, not two), ready to upload to CWS directly
 
