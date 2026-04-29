@@ -14,15 +14,15 @@ let dragSourceId = null;
 const RULE_LIBRARY = [
   {
     name: 'Slack message link',
-    domainPattern: '*.slack.com/archives/*',
-    textPattern: 'redirected you to the desktop app',
+    domainPattern: '*.slack.com/*',
+    textPattern: 'You can also open this link in your browser',
     textMode: 'substring',
     delayMs: 2000,
   },
   {
     name: 'Zoom meeting',
     domainPattern: '*.zoom.us/j/*',
-    textPattern: 'Click Open Zoom Meetings',
+    textPattern: 'Don’t have the Zoom Workplace app installed',
     textMode: 'substring',
     delayMs: 2500,
   },
@@ -336,7 +336,7 @@ function buildRuleRow(rule, index) {
     el('input', {
       type: 'text',
       value: rule.domainPattern || '',
-      placeholder: '*.slack.com/archives/*',
+      placeholder: '*.slack.com/*',
       dataset: { field: 'domainPattern' },
     }),
   );
