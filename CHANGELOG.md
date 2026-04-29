@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+* CI: new `release` workflow auto-publishes to the Chrome Web Store on tag push. Triggered by pushing a `v<version>` tag (e.g. `v0.1.21`); the workflow verifies the tag matches `manifest.json`, runs the test suite, builds the zip, and uploads via `chrome-webstore-upload-cli` with `--auto-publish` so it goes straight into Google's review queue. Removes the manual "download artifact → drag into the CWS dashboard" step. Auth uses three repo secrets (`CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`) tied to a dedicated `oscar-cws-publish` Google Cloud OAuth client; the extension ID is hardcoded in the workflow since it's public
 * Options page colophon now has direct "report a bug" and "request a feature" links next to the existing "source on GitHub" link. Both deep-link into the GitHub issue creation flow with the corresponding template (`bug_report.md` / `feature_request.md`) preselected, so users land on the prefilled form rather than the issue-type chooser
 
 ### Changed
