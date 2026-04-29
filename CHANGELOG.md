@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+* Options page colophon now has direct "report a bug" and "request a feature" links next to the existing "source on GitHub" link. Both deep-link into the GitHub issue creation flow with the corresponding template (`bug_report.md` / `feature_request.md`) preselected, so users land on the prefilled form rather than the issue-type chooser
+
 ### Changed
 * Default rule library presets for Slack and Zoom updated to match current landing-page copy. Slack: domain pattern broadened from `*.slack.com/archives/*` to `*.slack.com/*` and substring switched to "You can also open this link in your browser" — the old "redirected you to the desktop app" string no longer appears on Slack's launcher page. Zoom: substring switched to "Don’t have the Zoom Workplace app installed" (curly apostrophe matches the rendered copy) so the launcher matches Zoom Workplace's current wording. The `*.slack.com/*` placeholder in the domain-pattern input was updated to match
 * `manifest.json` description (which populates the Chrome Web Store "Summary" field) no longer enumerates specific desktop-app brand names. The CWS review team rejected 0.1.19 as "excessive / irrelevant keywords" ("Yellow Argon" violation ID) for listing ten brand names across Summary, Description, and Single-purpose fields — all three have been rewritten to describe the behavior generically
