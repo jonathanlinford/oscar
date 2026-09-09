@@ -13,8 +13,10 @@
       theme: 'system',
       rules: [
         { id: 'p1', domainPattern: '*.slack.com/archives/*', textPattern: 'redirected you to the desktop app', textMode: 'substring', delayMs: 2000, enabled: true },
-        { id: 'p2', domainPattern: '*.zoom.us/j/*', textPattern: '', textMode: 'substring', delayMs: 2500, enabled: true },
-        { id: 'p3', domainPattern: '', textPattern: 'click open', textMode: 'substring', delayMs: 2000, enabled: true },
+        { id: 'p2', domainPattern: '*.zoom.us/j/*', textPattern: 'Click Open Zoom Meetings', textMode: 'substring', delayMs: 2500, enabled: true },
+        { id: 'p3', domainPattern: 'teams.microsoft.com/l/meetup-join/*', textPattern: 'Open Microsoft Teams', textMode: 'substring', delayMs: 2500, enabled: true },
+        { id: 'p4', domainPattern: 'meet.google.com/*', textPattern: 'click open meet', textMode: 'substring', delayMs: 2500, enabled: true },
+        { id: 'p5', domainPattern: 'discord.com/invite/*', textPattern: 'Open Discord', textMode: 'substring', delayMs: 2000, enabled: true },
       ],
     };
 
