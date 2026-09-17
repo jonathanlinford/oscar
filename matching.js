@@ -44,7 +44,23 @@
     return String(text).toLowerCase().includes(String(pattern).toLowerCase());
   }
 
-  const api = { globToRegex, hostMatches, textMatches };
+  // Derive a rule domain pattern from a page URL, e.g.
+  // `https://app.slack.com/client/T0` -> `app.slack.com/*`. Returns null for
+  // anything that is not an http(s) URL with a hostname (chrome://,
+  // chrome-extension://, about:blank, file://) because content scripts never
+  // run there, so a rule built from it could never fire.
+  function patternFromUrl(url) {
+    try {
+      const u = new URL(url);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+      if (!u.hostname) return null;
+      return u.hostname + '/*';
+    } catch {
+      return null;
+    }
+  }
+
+  const api = { globToRegex, hostMatches, textMatches, patternFromUrl };
 
   if (typeof self !== 'undefined') self.OscarMatching = api;
   if (typeof window !== 'undefined') window.OscarMatching = api;

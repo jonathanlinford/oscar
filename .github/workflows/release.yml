@@ -1,9 +1,32 @@
 name: release
 
+# Publishes to the Chrome Web Store. Runs automatically when a `v<version>`
+# tag is pushed, and can be re-run for an existing tag from the Actions tab
+# ("Run workflow" → pick the tag) after rotating credentials.
+#
+# Recovery from an expired refresh token (`invalid_grant`), missing secrets,
+# and everything else about the release process lives in RELEASING.md.
+
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Submit for review after upload (uncheck to upload as a draft only)'
+        type: boolean
+        default: true
+
+# The job only needs to read the repo. Publishing uses the Web Store OAuth
+# secrets, not GITHUB_TOKEN.
+permissions:
+  contents: read
+
+# Never let two releases race each other at the Web Store.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -17,13 +40,31 @@ jobs:
 
       - name: Verify tag matches manifest.json version
         run: |
-          tag="${GITHUB_REF#refs/tags/v}"
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            echo "::error::This workflow must run on a v<version> tag, not $GITHUB_REF_TYPE '$GITHUB_REF_NAME'. Use 'Run workflow' and pick the tag."
+            exit 1
+          fi
+          case "$GITHUB_REF_NAME" in
+            v*) ;;
+            *) echo "::error::Tag '$GITHUB_REF_NAME' must look like v<version>"; exit 1 ;;
+          esac
+          tag="${GITHUB_REF_NAME#v}"
           manifest=$(grep '"version"' manifest.json | head -1 | sed -E 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/')
           if [ "$tag" != "$manifest" ]; then
             echo "::error::Tag v$tag does not match manifest.json version $manifest"
             exit 1
           fi
           echo "Releasing v$tag"
+
+      # Fail fast, before tests and packaging, if the Web Store credentials
+      # are missing or the refresh token has expired. The script prints an
+      # actionable diagnosis and never echoes the secrets.
+      - name: Check Chrome Web Store credentials
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+        run: node scripts/check-cws-token.js
 
       - run: npm test
 
@@ -40,4 +81,18 @@ jobs:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
-        run: npx -y chrome-webstore-upload-cli@3 upload --source "${{ steps.zip.outputs.path }}" --auto-publish
+          # Tag pushes always publish; manual runs honour the checkbox.
+          PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
+          ZIP: ${{ steps.zip.outputs.path }}
+        # Pinned to an exact version: this process holds the publishing
+        # credentials, so it must not float to whatever npm serves next.
+        # In 3.x, running with no subcommand uploads AND publishes; the
+        # `upload` subcommand uploads a draft for manual submission.
+        run: |
+          if [ "$PUBLISH" = "true" ]; then
+            echo "Uploading $ZIP and submitting for review"
+            npx -y chrome-webstore-upload-cli@3.5.0 --source "$ZIP"
+          else
+            echo "Uploading $ZIP as a draft (not submitted for review)"
+            npx -y chrome-webstore-upload-cli@3.5.0 upload --source "$ZIP"
+          fi

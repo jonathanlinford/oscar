@@ -282,7 +282,11 @@
       state.cancelled = true;
       if (state.intervalId) clearInterval(state.intervalId);
       overlay.dismiss();
-      chrome.runtime.sendMessage({ type: 'CANCEL_MATCH' });
+      chrome.runtime.sendMessage({
+        type: 'CANCEL_MATCH',
+        ruleId: rule.id,
+        ruleName: rule.domainPattern || label,
+      });
     });
 
     chrome.runtime.sendMessage({

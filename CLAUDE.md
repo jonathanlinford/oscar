@@ -12,6 +12,7 @@ Oscar is a Chrome Manifest V3 extension that auto-closes the landing-page tabs d
 npm run build              # or: bash scripts/build.sh — zips the extension to dist/oscar-<version>.zip
 npm test                   # node:test runner — matching.js, analytics.js, action-presenter.js
 bash scripts/check-version-bump.sh  # CI guard: fails if manifest.json version hasn't moved vs HEAD^
+node scripts/check-cws-token.js     # Release pre-flight: validates CLIENT_ID/CLIENT_SECRET/REFRESH_TOKEN
 ```
 
 Requires **Node 21+** for `npm test` (glob expansion in `node --test`). CI runs on Node 22. No lint step. No bundler.
@@ -35,7 +36,7 @@ Six JS modules split across the service worker, the injected content script, and
 - **`matching.js`** — pure helpers (`globToRegex`, `hostMatches`, `textMatches`) extracted so `content.js` and `test/matching.test.js` can share them. Attached to `self.OscarMatching`.
 - **`action-presenter.js`** — pure helpers (`markTabClosing`, `resetTab`) that take a `chrome.action`-shaped API as their first argument. Lets `test/action-presenter.test.js` validate the exact MV3 parameter shapes (e.g. `setTitle({tabId, title})` — **not** `{tabId, text}`) without a real extension context.
 - **`options.js` / `options.html`** — master/detail rules list with drag-to-reorder + expand-to-edit rows, rule library, theme picker, stats dashboard. Reads `OscarAnalytics` and `OscarTheme` off `window`. Rules have no `name` field — the domain pattern is the label.
-- **`popup.js` / `popup.html`** — toolbar popup: "add rule from current tab" button + mini stats teaser.
+- **`popup.js` / `popup.html`** — toolbar popup: "add rule from current tab" button + mini stats teaser. Loads `matching.js` for `patternFromUrl`. Oscar has no `tabs` permission, so `tab.url` is only present for pages Oscar has host access to; on `chrome://` and other internal pages the add button is disabled, and "Manage rules…" is wired before that check so it always works.
 
 ### Shared modules (IIFE + global pattern)
 
@@ -45,7 +46,7 @@ Six JS modules split across the service worker, the injected content script, and
 
 - `MATCH_PENDING {ruleId, ruleName, delayMs}` → background sets the red "closing" icon + tooltip.
 - `MATCH_TICK {seconds}` → background updates the badge text.
-- `CANCEL_MATCH {ruleId, ruleName}` → background resets icon/badge and calls `Analytics.recordCancel`.
+- `CANCEL_MATCH {ruleId, ruleName}` → background resets icon/badge and calls `Analytics.recordCancel` (per-rule cancel counts depend on `ruleId` being sent — it was missing before 0.1.23).
 - `CLOSE_TAB {ruleId, ruleName}` → background calls `Analytics.recordClose` then `chrome.tabs.remove`. Uses `return true` / `sendResponse` for async reply.
 
 `ruleName` in these messages is the rule's **display label**, not a user-set name. Rules don't have names anymore — content.js populates `ruleName` from `rule.domainPattern` so analytics stores a meaningful per-rule key.
@@ -76,5 +77,7 @@ Matches require **both** a domain glob and (optionally) a page-text check. Domai
 
 - **`test`** — runs on PRs and pushes: `npm test` + `check-version-bump.sh`. Required status check for branch protection on `main`.
 - **`build`** — runs only on push to `main` after `test` passes. Runs `scripts/build.sh` and uploads `dist/oscar-<version>.zip` as a workflow artifact named `oscar-<version>` (90-day retention). Download from the Actions tab to upload to the Chrome Web Store.
+
+`.github/workflows/release.yml` publishes to the Chrome Web Store on `v*` tag push (also runnable by hand on a tag via `workflow_dispatch`). It verifies tag == manifest version, runs `scripts/check-cws-token.js` to fail fast on expired/missing OAuth secrets, then tests, builds, and uploads with a pinned `chrome-webstore-upload-cli`. Both workflows set `permissions: contents: read`. Process and recovery steps (notably `invalid_grant` from a consent screen left in "Testing") are in `RELEASING.md`.
 
 Branch protection on `main`: PR + 1 approval required, `test` status check required, force pushes + deletions blocked, admin bypass on (owner can push directly when needed).

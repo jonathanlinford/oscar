@@ -6,7 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+* Popup: "Manage rules…" did nothing on tabs whose URL Chrome withholds (new tab page, `chrome://` pages, the Web Store, other extensions' pages). With the `tabs` permission gone as of 0.1.22, `tab.url` is only populated for pages Oscar has host access to, and the early return for "no URL" also skipped wiring the options button. The button is now wired unconditionally, and "Create rule from this tab" is disabled with an explanation on non-http(s) pages instead of silently doing nothing (or, before 0.1.22, creating a useless `newtab/*` rule). Rule derivation moved into `matching.js` as `patternFromUrl` with unit tests
+* Per-rule cancel counts were never recorded: the content script's `CANCEL_MATCH` message omitted `ruleId`/`ruleName`, so `Analytics.recordCancel` only bumped the lifetime total. Cancel rate per rule in the Stats leaderboard now works
+* Release workflow now fails fast, before tests and packaging, with an actionable diagnosis when the Chrome Web Store OAuth secrets are missing or the refresh token has expired (`invalid_grant`, typically from a consent screen left in "Testing" status, which expires tokens after 7 days). New `scripts/check-cws-token.js` does the check, is unit-tested, and can be run locally to validate freshly minted secrets. The workflow can also be re-run on an existing tag from the Actions tab (`workflow_dispatch`, with an option to upload as a draft instead of submitting for review), and refuses to run on non-tag refs
+* README: the Google favicon fallback fires for rule domains too, not only library presets — wording corrected to match `PRIVACY.md`
+
+### Added
+* `RELEASING.md`: end-to-end release process, how to mint/rotate the Web Store OAuth credentials, and a recovery playbook for `invalid_grant`, `invalid_client`, missing secrets, and upload-without-publish
+
 ### Changed
+* CI hardening: both workflows now declare `permissions: contents: read` for `GITHUB_TOKEN`; the release job is pinned to `chrome-webstore-upload-cli@3.5.0` instead of floating on `@3`, uses the CLI's non-deprecated upload-and-publish form instead of `--auto-publish`, and takes a `concurrency` group so two releases can't race at the Web Store
 * Removed the redundant `tabs` permission. Oscar can close matched tabs without it, while the existing host access already provides the active-tab URL used by the popup. This reduces the extension's requested API permissions without changing behavior.
 * README installation instructions now link directly to Oscar's live Chrome Web Store listing.
 
