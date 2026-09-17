@@ -23,7 +23,7 @@ It is completely local. No accounts, no telemetry, no servers.
 
 ### From the Chrome Web Store
 
-*Coming soon.*
+[Install Oscar from the Chrome Web Store](https://chromewebstore.google.com/detail/oscar-%E2%80%94-tab-auto-closer/pmnlpaaoigckgocmndipekjbiplkjbea)
 
 ### From source (developer mode)
 
