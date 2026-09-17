@@ -39,7 +39,6 @@ This request happens only on the Oscar options page, only for domains that are n
 | Permission | Why Oscar needs it |
 | --- | --- |
 | `storage` | Save your rules, theme, and local analytics |
-| `tabs` | Close the tab that matched a rule |
 | `favicon` | Display site favicons from Chrome's local cache on the options page |
 | `<all_urls>` (host) | Run the content script on any page where a rule might apply |
 
