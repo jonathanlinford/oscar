@@ -50,6 +50,8 @@ Patch the version in **both** `manifest.json` and `package.json` with your chang
 
 Add a one-liner to `CHANGELOG.md` under `[Unreleased]`.
 
+Maintainers cut releases by pushing a `v<version>` tag; see [RELEASING.md](RELEASING.md).
+
 ## Commit messages
 
 Subject line: imperative mood, under 72 characters. Example:

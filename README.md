@@ -45,7 +45,7 @@ Open the options page from `chrome://extensions` &rarr; Oscar &rarr; **Extension
 
 Oscar does not collect, transmit, or share any personal information. See [PRIVACY.md](PRIVACY.md) for the full policy.
 
-The only external request Oscar ever makes is to Google's public favicon service (`https://www.google.com/s2/favicons`), and only for library-preset domains you have not visited in this browser profile.
+The only external request Oscar ever makes is to Google's public favicon service (`https://www.google.com/s2/favicons`), and only from the options page, for rule and library-preset domains whose favicon is not already in Chrome's local cache.
 
 ## Development
 
@@ -68,8 +68,10 @@ icons/                  Shipped PNGs in 16/32/48/128 + "closing" red variants
 design/                 Pre-resize icon source masters (not shipped)
 scripts/build.sh        Package the extension as a zip for the Chrome Web Store
 scripts/check-version-bump.sh  CI guard that requires manifest.json version bumps
+scripts/check-cws-token.js     Pre-flight check of the Web Store publish credentials
 test/                   node:test unit tests + dev preview HTML pages
-.github/workflows/      Test + build CI
+.github/workflows/      Test + build CI, and tag-triggered Web Store release
+RELEASING.md            How releases get to the Web Store, and how to recover when they don't
 ```
 
 ### Packaging for the Chrome Web Store
@@ -81,6 +83,8 @@ npm run build          # or: bash scripts/build.sh
 Produces `dist/oscar-<version>.zip`, ready to upload to the developer dashboard.
 
 CI also builds the zip on every push to `main` and uploads it as a workflow artifact named `oscar-<version>` (90-day retention), so you can grab a ready-to-upload zip directly from the Actions tab without running the script locally.
+
+Pushing a `v<version>` tag publishes to the Chrome Web Store automatically. See [RELEASING.md](RELEASING.md) for the full process and for recovering from expired publish credentials.
 
 ### Tests
 

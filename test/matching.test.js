@@ -4,7 +4,7 @@ const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
 const { OscarMatching } = require('./helpers');
 
-const { globToRegex, hostMatches, textMatches } = OscarMatching;
+const { globToRegex, hostMatches, textMatches, patternFromUrl } = OscarMatching;
 
 describe('globToRegex', () => {
   test('escapes regex metacharacters in the literal parts', () => {
@@ -115,5 +115,37 @@ describe('textMatches', () => {
 
   test('defaults to substring for unknown mode', () => {
     assert.ok(textMatches('needle', 'bogus', 'the needle is here'));
+  });
+});
+
+describe('patternFromUrl', () => {
+  test('turns an https page URL into a hostname wildcard pattern', () => {
+    assert.equal(patternFromUrl('https://app.slack.com/client/T0/C1'), 'app.slack.com/*');
+  });
+
+  test('accepts http and drops port, query and hash', () => {
+    assert.equal(patternFromUrl('http://localhost:8080/x?y=1#z'), 'localhost/*');
+  });
+
+  test('the derived pattern matches the URL it came from', () => {
+    const url = 'https://us02web.zoom.us/j/1234567890?pwd=abc';
+    assert.ok(hostMatches(patternFromUrl(url), url));
+  });
+
+  test('returns null for browser-internal and non-web URLs', () => {
+    // These are what chrome.tabs.query hands back on the new tab page, the
+    // extensions page, the Web Store, and other extensions' pages. Content
+    // scripts never run there, so a rule for them could never fire.
+    assert.equal(patternFromUrl('chrome://newtab/'), null);
+    assert.equal(patternFromUrl('chrome://extensions/'), null);
+    assert.equal(patternFromUrl('chrome-extension://abcdefghijklmnop/options.html'), null);
+    assert.equal(patternFromUrl('about:blank'), null);
+    assert.equal(patternFromUrl('file:///Users/me/index.html'), null);
+  });
+
+  test('returns null for empty, undefined, or malformed input', () => {
+    assert.equal(patternFromUrl(''), null);
+    assert.equal(patternFromUrl(undefined), null);
+    assert.equal(patternFromUrl('not a url'), null);
   });
 });

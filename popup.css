@@ -127,6 +127,14 @@ button.primary:active {
   box-shadow: none;
 }
 
+button:disabled,
+button:disabled:hover {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 button.secondary {
   background: transparent;
   color: var(--text);
